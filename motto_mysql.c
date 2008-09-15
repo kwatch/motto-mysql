@@ -67,11 +67,11 @@ static VALUE _result_get_value(char *str, unsigned int length, int type) {
     struct time_object *tobj;
     struct tm t;
     switch (type) {
+    case MYSQL_TYPE_VAR_STRING:
     case MYSQL_TYPE_STRING:
         string = rb_tainted_str_new(str, length);
         return string;
     case MYSQL_TYPE_LONG:
-    case MYSQL_TYPE_TINY:
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_INT24:
         string = rb_tainted_str_new(str, length);
@@ -83,6 +83,13 @@ static VALUE _result_get_value(char *str, unsigned int length, int type) {
     case MYSQL_TYPE_DOUBLE:
         string = rb_tainted_str_new(str, length);
         return rb_Float(string);
+    case MYSQL_TYPE_TINY:
+        if (length == 1) {
+            return str[0] == '1' ? Qtrue : Qfalse;
+        } else {
+            string = rb_tainted_str_new(str, length);
+            return rb_Integer(string);
+        }
     case MYSQL_TYPE_TIMESTAMP:
         strptime(str, "%Y-%m-%d %H:%M:%S", &t);
         return rb_funcall(cMysql, id_create_timestamp, 8,
@@ -296,6 +303,13 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_DOUBLE:
         return rb_float_new(*(double *)bind->buffer);
         //return rb_Float(rb_tainted_str_new(bind->buffer, s->result.length[i]));
+    case MYSQL_TYPE_TINY:
+        if (s->result.length[i] == 1) {
+            return ((char *)bind->buffer)[0] == 1 ? Qtrue : Qfalse;
+        } else {
+            return (bind->is_unsigned) ? UINT2NUM(*(unsigned char *)bind->buffer)
+                                       : INT2NUM(*(char *)bind->buffer);
+        }
 #endif
     /*
     case MYSQL_TYPE_TIMESTAMP:
@@ -334,9 +348,6 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_BLOB:
         return rb_tainted_str_new(bind->buffer, s->result.length[i]);
 #elif MYSQL_RUBY_VERSION >= 20705
-    case MYSQL_TYPE_TINY:
-        return (bind->is_unsigned) ? UINT2NUM(*(unsigned char *)bind->buffer)
-                                   : INT2NUM(*(char *)bind->buffer);
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_YEAR:
         return (bind->is_unsigned) ? UINT2NUM(*(unsigned short *)bind->buffer)
