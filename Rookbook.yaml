@@ -35,7 +35,7 @@ recipes:
 	source = File.read('$(mysql_c)')
 	filepath = '$(mysql_c)'.sub(/\A\w+\//, '')
 	s = ''
-	s << "/* -------------- copied from #{filepath} -------------- */\n"
+	s << "/* ------------------------ copied from mysql.c ------------------------ */\n"
 	s << "\n"
 	s << (source =~ /^\#define MYSQL_RUBY_VERSION.*?\n/ and $&)
 	s << "\n"
