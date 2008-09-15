@@ -3,56 +3,10 @@
 properties:
 
   - target:		motto_mysql
-  - home*:		ENV['HOME']
-  - mysql_srcdir:	$(home)/tmp/ruby/mysql-ruby-2.7.5
-  - mysql_c:		$(mysql_srcdir)/mysql.c
-  - mysql_h_eruby: |
-	#include "ruby.h"
-	#include "version.h"
-	#ifdef HAVE_MYSQL_H
-	#include <mysql.h>
-	#include <errmsg.h>
-	#include <mysqld_error.h>
-	#endif
-	
-	extern VALUE cMysqlRes;
-	extern VALUE cMysqlStmt;
-	extern VALUE cMysqlTime;
-	extern VALUE eMysql;
-	extern VALUE cMysql;
-	
-	/* ------------------------- copied from mysql.c ----------------------- */
-	
-	<% source = File.read('mysql.c') %>
-	/* struct mysql_res */
-	<%= (source =~ /^struct mysql_res \{.*?^\};\n/m) && $& %>
-	/* macro GetMysqlRes */
-	<%= (source =~ /^\#define GetMysqlRes\(obj\).*?\n/) && $& %>
-	/* struct mysql_stmt */
-	<%= (source =~ /^struct mysql_stmt \{.*?\};\n/m) && $& %>
-	/* macro GetMysqlStmt */
-	<%= (source =~ /^\#define GetMysqlStmt\(obj\).*?\n/) && $& %>
-	/* check_free() */
-	<%= (source =~ /^static void check_free\(VALUE \w+\)\n\{.*?^\}\n/m) && $& %>
-	/* check_stmt_closed() */
-	<%= (source =~ /^static void check_stmt_closed\(VALUE \w+\)\n\{.*?^\}\n/m) && $& %>
-	/* mysql_stmt_raise() */
-	<%= (source =~ /^static void mysql_stmt_raise\(MYSQL_STMT\* \w+\)\n\{.*?^\}\n/m) && $& %>
-	
-	/* --------------------------------------------------------------------- */
-
+  - mysql_srcdir:	external/mysql-ruby-2.7.5
+  - mysql_c_in:		$(mysql_srcdir)/mysql.c.in
 
 recipes:
-
-  - product:	:copy
-    method*: |
-	cp '$(mysql_srcdir)/mysql.c.in', 'mysql.c.in.orig'
-	cp '$(mysql_srcdir)/extconf.rb', 'extconf.rb.orig'
-	chdir '$(mysql_srcdir)' do
-	  sys 'ruby extconf.rb --with-mysql-dir=/usr/local/mysql'
-	end
-	cp '$(mysql_srcdir)/Makefile', 'Makefile.orig'
-
 
   - product:	:all
     ingreds:	[ Makefile, $(target).h ]
@@ -70,9 +24,9 @@ recipes:
     ingreds:	[ $(target).h ]
 
   - product:	$(target).h
-    ingreds:	[ $(mysql_c), Rookbook.yaml ]
+    ingreds:	[ $(mysql_c_in), Rookbook.yaml ]
     method*: |
-	source = File.read('$(mysql_c)')
+	source = File.read('$(mysql_c_in)')
 	s = ''
 	s << "/* ------------------------- copied from mysql.c ----------------------- */\n"
 	s << "\n"
