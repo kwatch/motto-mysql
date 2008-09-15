@@ -3,9 +3,12 @@
 properties:
 
   - target:		motto_mysql
-  - mysql_ruby_version: '2.7.6'
+  #- mysql_ruby_version: '2.7.4'
+  #- mysql_ruby_version: '2.7.5'
+  #- mysql_ruby_version: '2.7.6'
+  - mysql_ruby_version: '2.8pre4'
   - mysql_srcdir:	external/mysql-ruby-$(mysql_ruby_version)
-  - mysql_c_in:		$(mysql_srcdir)/mysql.c.in
+  - mysql_c:		$(mysql_srcdir)/mysql.c
 
 recipes:
 
@@ -27,11 +30,12 @@ recipes:
     ingreds:	[ $(target).h ]
 
   - product:	$(target).h
-    ingreds:	[ $(mysql_c_in), Rookbook.yaml ]
+    ingreds:	[ $(mysql_c), Rookbook.yaml ]
     method*: |
-	source = File.read('$(mysql_c_in)')
+	source = File.read('$(mysql_c)')
+	filepath = '$(mysql_c)'.sub(/\A\w+\//, '')
 	s = ''
-	s << "/* -------------- copied from mysql-ruby-$(mysql_ruby_version)/mysql.c.in -------------- */\n"
+	s << "/* -------------- copied from #{filepath} -------------- */\n"
 	s << "\n"
 	s << (source =~ /^\#define MYSQL_RUBY_VERSION.*?\n/ and $&)
 	s << "\n"

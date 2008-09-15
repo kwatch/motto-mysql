@@ -1,6 +1,6 @@
-/* -------------- copied from mysql-ruby-2.7.6/mysql.c.in -------------- */
+/* -------------- copied from mysql-ruby-2.8pre4/mysql.c -------------- */
 
-#define MYSQL_RUBY_VERSION 20706
+#define MYSQL_RUBY_VERSION 20800
 
 /* struct mysql_res */
 struct mysql_res {
