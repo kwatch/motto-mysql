@@ -1,0 +1,46 @@
+#include "ruby.h"
+#include "version.h"
+#ifdef HAVE_MYSQL_H
+#include <mysql.h>
+#include <errmsg.h>
+#include <mysqld_error.h>
+#endif
+
+extern VALUE cMysqlRes;
+extern VALUE cMysqlStmt;
+extern VALUE cMysqlTime;
+extern VALUE eMysql;
+extern VALUE cMysql;
+
+/* ------------------------- copied from mysql.c ----------------------- */
+
+<% source = File.read('mysql.c') %>
+/* struct mysql_res */
+<%= (source =~ /^struct mysql_res \{.*?^\};\n/m) && $& %>
+/* macro GetMysqlRes */
+<%= (source =~ /^\#define GetMysqlRes\(obj\).*?\n/) && $& %>
+/* struct mysql_stmt */
+<%= (source =~ /^struct mysql_stmt \{.*?\};\n/m) && $& %>
+/* macro GetMysqlStmt */
+<%= (source =~ /^\#define GetMysqlStmt\(obj\).*?\n/) && $& %>
+/* check_free() */
+<%= (source =~ /^static void check_free\(VALUE \w+\)\n\{.*?^\}\n/m) && $& %>
+/* check_stmt_closed() */
+<%= (source =~ /^static void check_stmt_closed\(VALUE \w+\)\n\{.*?^\}\n/m) && $& %>
+/* mysql_stmt_raise() */
+<%= (source =~ /^static void mysql_stmt_raise\(MYSQL_STMT\* \w+\)\n\{.*?^\}\n/m) && $& %>
+
+/* --------------------------------------------------------------------- */
+
+<%
+matched = []
+source.scan(/^\/\* ==========+ \*\/\n((?:.|\n)*?)^\/\* =========+ \*\/\n/) do |m|
+  matched << $1
+end
+%>
+<%= matched[0] %>
+
+void Init_dokkan(void)
+{
+<%= matched[1] %>
+}

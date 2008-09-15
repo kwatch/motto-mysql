@@ -3205,7 +3205,7 @@ void Init_mysql(void)
     rb_define_const(eMysql, "ER_NON_INSERTABLE_TABLE", INT2NUM(ER_NON_INSERTABLE_TABLE));
     rb_define_const(eMysql, "ER_ERROR_LAST", INT2NUM(ER_ERROR_LAST));
 
-    /* ============================================================ */
+/* ============================================================ */
     id_new              = rb_intern("new");
     id_initialize       = rb_intern("initialize");
     id_create_timestamp = rb_intern("create_timestamp");
@@ -3231,5 +3231,5 @@ void Init_mysql(void)
     rb_define_method(cMysqlStmt, "fetch_all_hash",   stmt_fetch_all_hash,   0);
     rb_define_method(cMysqlStmt, "fetch_all_array",  stmt_fetch_all_array,  0);
     rb_define_method(cMysqlStmt, "fetch_all_object", stmt_fetch_all_object, 1);
-    /* ============================================================ */
+/* ============================================================ */
 }
