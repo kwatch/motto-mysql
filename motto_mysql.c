@@ -269,6 +269,7 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     MYSQL_BIND *bind = &(s->result.bind[i]);
     /*switch (bind->buffer_type) {*/
     switch (buffer_type) {
+#if MYSQL_RUBY_VERSION == 20704
     case MYSQL_TYPE_STRING:
         return rb_tainted_str_new(bind->buffer, s->result.length[i]);
     case MYSQL_TYPE_LONG:
@@ -278,6 +279,24 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_DOUBLE:
         /*return rb_float_new(*(double*)bind->buffer);*/
         return rb_Float(rb_tainted_str_new(bind->buffer, s->result.length[i]));
+#elif MYSQL_RUBY_VERSION >= 20705
+    case MYSQL_TYPE_STRING:
+    case MYSQL_TYPE_VAR_STRING:
+        return rb_tainted_str_new(bind->buffer, s->result.length[i]);
+    case MYSQL_TYPE_INT24:
+    case MYSQL_TYPE_LONG:
+        return (bind->is_unsigned) ? UINT2NUM(*(unsigned int *)bind->buffer)
+                                   : INT2NUM(*(int *)bind->buffer);
+    case MYSQL_TYPE_LONGLONG:
+        return (bind->is_unsigned) ? ULL2NUM(*(unsigned long long *)bind->buffer)
+                                   : LL2NUM(*(long long *)bind->buffer);
+    case MYSQL_TYPE_FLOAT:
+        //return rb_float_new((double)(*(float *)bind->buffer));
+        return rb_Float(rb_tainted_str_new(bind->buffer, s->result.length[i]));
+    case MYSQL_TYPE_DOUBLE:
+        return rb_float_new(*(double *)bind->buffer);
+        //return rb_Float(rb_tainted_str_new(bind->buffer, s->result.length[i]));
+#endif
     /*
     case MYSQL_TYPE_TIMESTAMP:
     case MYSQL_TYPE_DATE:
@@ -311,8 +330,28 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
                           Qnil, Qnil, Qnil,
                           INT2FIX(t->hour), INT2FIX(t->minute), INT2FIX(t->second),
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
+#if MYSQL_RUBY_VERSION == 20704
     case MYSQL_TYPE_BLOB:
         return rb_tainted_str_new(bind->buffer, s->result.length[i]);
+#elif MYSQL_RUBY_VERSION >= 20705
+    case MYSQL_TYPE_TINY:
+        return (bind->is_unsigned) ? UINT2NUM(*(unsigned char *)bind->buffer)
+                                   : INT2NUM(*(char *)bind->buffer);
+    case MYSQL_TYPE_SHORT:
+    case MYSQL_TYPE_YEAR:
+        return (bind->is_unsigned) ? UINT2NUM(*(unsigned short *)bind->buffer)
+                                   : INT2NUM(*(short *)bind->buffer);
+    case MYSQL_TYPE_DECIMAL:
+    case MYSQL_TYPE_BLOB:
+    case MYSQL_TYPE_TINY_BLOB:
+    case MYSQL_TYPE_MEDIUM_BLOB:
+    case MYSQL_TYPE_LONG_BLOB:
+#if MYSQL_VERSION_ID >= 50003
+    case MYSQL_TYPE_NEWDECIMAL:
+    case MYSQL_TYPE_BIT:
+#endif
+        return rb_tainted_str_new(bind->buffer, s->result.length[i]);
+#endif
     default:
         rb_raise(rb_eTypeError, "unknown buffer_type: %d", bind->buffer_type);
     }
@@ -330,7 +369,11 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
     int i;
     for (i = 0; i < n; i++) {
         int t = buffer_types[i] = s->result.bind[i].buffer_type;
+#if MYSQL_RUBY_VERSION == 20704
         if (t == MYSQL_TYPE_DOUBLE || t == MYSQL_TYPE_FLOAT) {
+#elif MYSQL_RUBY_VERSION >= 20705
+        if (t == MYSQL_TYPE_FLOAT) {
+#endif
             s->result.bind[i].buffer_type = MYSQL_TYPE_STRING;
         }
     }
