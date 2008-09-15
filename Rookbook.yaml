@@ -10,6 +10,8 @@ recipes:
 
   - product:	:all
     ingreds:	[ Makefile, $(target).h ]
+    method*: |
+	sys "make"
 
   - product:	:clean
     method*: |

@@ -34,10 +34,9 @@ static VALUE create_ruby_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mda
                                    VALUE hour, VALUE min, VALUE sec,
                                    VALUE neg, VALUE arg)
 {
-    if (year == Qnil) {
-        year = INT2FIX(1970);
-        month = mday = INT2FIX(1);
-    }
+    if (year  == Qnil) year  = INT2FIX(1970);
+    if (month == Qnil) month = INT2FIX(1);
+    if (mday  == Qnil) mday  = INT2FIX(1);
     return rb_funcall(rb_cTime, id_mktime, 6,
                       year, month, mday, hour, min, sec);
 }
