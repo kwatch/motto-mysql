@@ -3,7 +3,8 @@
 properties:
 
   - target:		motto_mysql
-  - mysql_srcdir:	external/mysql-ruby-2.7.5
+  - mysql_ruby_version: '2.7.5'
+  - mysql_srcdir:	external/mysql-ruby-$(mysql_ruby_version)
   - mysql_c_in:		$(mysql_srcdir)/mysql.c.in
 
 recipes:
@@ -30,7 +31,9 @@ recipes:
     method*: |
 	source = File.read('$(mysql_c_in)')
 	s = ''
-	s << "/* ------------------------- copied from mysql.c ----------------------- */\n"
+	s << "/* -------------- copied from mysql-ruby-$(mysql_ruby_version)/mysql.c.in -------------- */\n"
+	s << "\n"
+	s << (source =~ /^\#define MYSQL_RUBY_VERSION.*?\n/ and $&)
 	s << "\n"
 	s << "/* struct mysql_res */\n"
 	s << (source =~ /^struct mysql_res \{.*?^\};\n/m and $&)
@@ -55,4 +58,26 @@ recipes:
 	s << "\n"
 	s << "/* --------------------------------------------------------------------- */\n"
 	File.open(@product, 'w') {|f| f.write(s) }
+
+
+
+  - product:	:debug
+    method*: |
+	items = %w[string var_string int24 long longlong float double
+	           timestamp datetime date time
+		   tiny short year decimal blob tiny_blob medium_blob newdecimal bit]
+	s = ''
+	s <<   "#if DEBUG\n"
+	s <<   "    int _type = buffer_type;\n"
+	s <<   "    int _length = s->result.length[i];\n"
+	s <<   "    switch (_type) {\n"
+	for item in items
+	  t = item.upcase
+	  s << "    case MYSQL_TYPE_#{t}: fprintf(stderr, \"*** debug: MYSQL_TYPE_#{t}(%d), length=%d\\n\", _type, _length); break;\n"
+	end
+	s <<   "    default:  fprintf(stderr, \"*** debug: unknown type(%d)\\n\", _type);\n"
+	s <<   "    }\n"
+	s <<   "#endif\n"
+	File.open('debug', 'w') {|f| f << s }
+
 	
