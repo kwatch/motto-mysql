@@ -492,7 +492,7 @@ void Init_motto_mysql(void)
     id_free             = rb_intern("free");
     id_free_result      = rb_intern("free_result");
 
-    rb_define_singleton_method(cMysql, "create_timestamp",       create_mysql_timestamp, 8);
+    rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
 
