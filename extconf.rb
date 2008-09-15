@@ -72,4 +72,5 @@ File::unlink "conftest.c"
 #
 #create_makefile("mysql")
 
+File::unlink 'confout'
 create_makefile("motto_mysql")
