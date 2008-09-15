@@ -3,7 +3,7 @@
 properties:
 
   - target:		motto_mysql
-  - mysql_ruby_version: '2.7.5'
+  - mysql_ruby_version: '2.7.6'
   - mysql_srcdir:	external/mysql-ruby-$(mysql_ruby_version)
   - mysql_c_in:		$(mysql_srcdir)/mysql.c.in
 

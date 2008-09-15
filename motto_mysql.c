@@ -289,10 +289,10 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_INT24:
     case MYSQL_TYPE_LONG:
         return (bind->is_unsigned) ? UINT2NUM(*(unsigned int *)bind->buffer)
-                                   : INT2NUM(*(int *)bind->buffer);
+                                   : INT2NUM(*(signed int *)bind->buffer);
     case MYSQL_TYPE_LONGLONG:
         return (bind->is_unsigned) ? ULL2NUM(*(unsigned long long *)bind->buffer)
-                                   : LL2NUM(*(long long *)bind->buffer);
+                                   : LL2NUM(*(signed long long *)bind->buffer);
     case MYSQL_TYPE_FLOAT:
         //return rb_float_new((double)(*(float *)bind->buffer));
         return rb_Float(rb_tainted_str_new(bind->buffer, s->result.length[i]));
@@ -304,7 +304,7 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
             return ((char *)bind->buffer)[0] == 1 ? Qtrue : Qfalse;
         } else {
             return (bind->is_unsigned) ? UINT2NUM(*(unsigned char *)bind->buffer)
-                                       : INT2NUM(*(char *)bind->buffer);
+                                       : INT2NUM(*(signed char *)bind->buffer);
         }
 #endif
     /*
@@ -347,7 +347,7 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_YEAR:
         return (bind->is_unsigned) ? UINT2NUM(*(unsigned short *)bind->buffer)
-                                   : INT2NUM(*(short *)bind->buffer);
+                                   : INT2NUM(*(signed short *)bind->buffer);
     case MYSQL_TYPE_DECIMAL:
     case MYSQL_TYPE_BLOB:
     case MYSQL_TYPE_TINY_BLOB:
