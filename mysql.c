@@ -1835,17 +1835,19 @@ static VALUE create_mysqltime_timestamp(VALUE obj, VALUE year, VALUE month, VALU
                                         VALUE hour, VALUE min, VALUE sec,
                                         VALUE neg, VALUE arg)
 {
-    //if (year != Qnil)
-    //    year = INT2FIX(FIX2INT(year) + 1900);
-    //if (month != Qnil)
-    //    month = INT2FIX(FIX2INT(month) + 1);
+    /*
+    if (year != Qnil)
+        year = INT2FIX(FIX2INT(year) + 1900);
+    if (month != Qnil)
+        month = INT2FIX(FIX2INT(month) + 1);
+    */
     VALUE val = rb_obj_alloc(cMysqlTime);
     rb_funcall(val, rb_intern("initialize"), 8,
                year, month, mday, hour, min, sec, neg, arg);
     return val;
 }
 
-static VALUE _to_value(char *str, unsigned int length, int type) {
+static VALUE _result_get_value(char *str, unsigned int length, int type) {
     /*
     if (str == NULL)
         return Qnil;
@@ -1916,14 +1918,14 @@ static VALUE _result_fetch_one(VALUE obj_result, VALUE klass)
     if (klass == rb_cHash) {
         ret = rb_hash_new();
         for (i = 0; i < n; i++) {
-            VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+            VALUE val = row[i] ? _result_get_value(row[i], lengths[i], fields[i].type) : Qnil;
             rb_hash_aset(ret, rb_tainted_str_new2(fields[i].name), val);
         }
     }
     else if (klass = rb_cArray) {
         ret = rb_ary_new2(n);
         for (i = 0; i < n; i++) {
-            VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+            VALUE val = row[i] ? _result_get_value(row[i], lengths[i], fields[i].type) : Qnil;
             rb_ary_push(ret, val);
         }
     }
@@ -1960,7 +1962,7 @@ static VALUE _result_fetch_all(VALUE obj_result, VALUE klass)
             unsigned long* lengths = mysql_fetch_lengths(res);
             VALUE hash = rb_hash_new();
             for (i = 0; i < n; i++) {
-                VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+                VALUE val = row[i] ? _result_get_value(row[i], lengths[i], fields[i].type) : Qnil;
                 rb_hash_aset(hash, names[i], val);
             }
             rb_ary_push(list, hash);
@@ -1973,7 +1975,7 @@ static VALUE _result_fetch_all(VALUE obj_result, VALUE klass)
             VALUE arr = rb_ary_new2(n);
             int i;
             for (i = 0; i < n; i++) {
-                VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+                VALUE val = row[i] ? _result_get_value(row[i], lengths[i], fields[i].type) : Qnil;
                 rb_ary_push(arr, val);
             }
             rb_ary_push(list, arr);
@@ -1994,9 +1996,8 @@ static VALUE result_fetch_all_array(VALUE obj_result)
     return _result_fetch_all(obj_result, rb_cArray);
 }
 
-static VALUE _stmt_get_field(struct mysql_stmt *s, int i, int buffer_type)
+static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
 {
-    //fprintf(stderr, "*** debug: s=%p, i=%d, buffer_type=%d=\n", s, i, buffer_type);
     if (s->result.is_null[i])
         return Qnil;
     VALUE val;
@@ -2054,20 +2055,19 @@ static VALUE _stmt_get_field(struct mysql_stmt *s, int i, int buffer_type)
     return Qnil;
 }
 
-static int _stmt_fetch_with_values(VALUE obj_stmt, VALUE *values, int *buffer_types)
+static int _stmt_fetch_with_values(struct mysql_stmt *s, VALUE *values, int *buffer_types)
 {
     /* fetch */
-    struct mysql_stmt *s = DATA_PTR(obj_stmt);
     int r = mysql_stmt_fetch(s->stmt);
     if (r == MYSQL_NO_DATA)
-	return 0;   /* not fetched */
+        return 0;   /* not fetched */
     if (r == 1)
-	mysql_stmt_raise(s->stmt);
+        mysql_stmt_raise(s->stmt);
     /* set fetched data to values */
     int n = s->result.n;
     int i;
     for (i = 0; i < n; i++) {
-        values[i] = s->result.is_null[i] ? Qnil : _stmt_get_field(s, i, buffer_types[i]);
+        values[i] = s->result.is_null[i] ? Qnil : _stmt_get_value(s, i, buffer_types[i]);
     }
     return 1;
 }
@@ -2089,53 +2089,63 @@ static VALUE _stmt_fetch_all(VALUE obj_stmt, VALUE klass)
     }
     if (mysql_stmt_bind_result(s->stmt, s->result.bind))
         mysql_stmt_raise(s->stmt);
-    //
+
     VALUE list = rb_ary_new();
-    int r;
     if (klass == rb_cHash) {
         VALUE *names = alloca(n * sizeof(VALUE));
         for (i = 0; i < n; i++) {
             names[i] = rb_tainted_str_new2(fields[i].name);
         }
-        //while ((r = mysql_stmt_fetch(s->stmt)) != MYSQL_NO_DATA && r != 1) {
-        //    VALUE hash = rb_hash_new();
-        //    for (i = 0; i < n; i++) {
-        //        VALUE val = _stmt_get_field(s, i, buffer_types[i]);
-        //        rb_hash_aset(hash, names[i], val);
-        //    }
-        //    rb_ary_push(list, hash);
-        //}
-        //if (r == 1)
-        //    mysql_stmt_raise(s->stmt);
+#if 0
+        /* error when compiled with -O2 */
+        int r;
+        while ((r = mysql_stmt_fetch(s->stmt)) != MYSQL_NO_DATA && r != 1) {
+            VALUE hash = rb_hash_new();
+            for (i = 0; i < n; i++) {
+                //VALUE val = _stmt_get_value(s, i, buffer_types[i]);
+                VALUE val = _stmt_get_value(obj_stmt, i, buffer_types[i]);
+                rb_hash_aset(hash, names[i], val);
+            }
+            rb_ary_push(list, hash);
+        }
+        if (r == 1)
+            mysql_stmt_raise(s->stmt);
+#else
         VALUE *values = alloca(n * sizeof(VALUE));
-        while (_stmt_fetch_with_values(obj_stmt, values, buffer_types)) {
+        while (_stmt_fetch_with_values(s, values, buffer_types)) {
             VALUE hash = rb_hash_new();
             for (i = 0; i < n; i++) {
                 rb_hash_aset(hash, names[i], values[i]);
             }
             rb_ary_push(list, hash);
         }
+#endif
     }
     else if (klass == rb_cArray) {
-        //while ((r = mysql_stmt_fetch(s->stmt)) != MYSQL_NO_DATA && r != 1) {
-        //    VALUE arr = rb_ary_new2(n);
-        //    int j;
-        //    for (j = 0; j < n; j++) {
-        //        VALUE val = _stmt_get_field(s, j, buffer_types[j]);
-        //        rb_ary_push(arr, val);
-        //    }
-        //    rb_ary_push(list, arr);
-        //}
-        //if (r == 1)
-        //    mysql_stmt_raise(s->stmt);
+#if 0
+        /* error when compiled with -O2 */
+        int r;
+        while ((r = mysql_stmt_fetch(s->stmt)) != MYSQL_NO_DATA && r != 1) {
+            VALUE arr = rb_ary_new2(n);
+            int j;
+            for (j = 0; j < n; j++) {
+                VALUE val = _stmt_get_value(s, j, buffer_types[j]);
+                rb_ary_push(arr, val);
+            }
+            rb_ary_push(list, arr);
+        }
+        if (r == 1)
+            mysql_stmt_raise(s->stmt);
+#else
         VALUE *values = alloca(n * sizeof(VALUE));
-        while (_stmt_fetch_with_values(obj_stmt, values, buffer_types)) {
+        while (_stmt_fetch_with_values(s, values, buffer_types)) {
             VALUE arr = rb_ary_new2(n);
             for (i = 0; i < n; i++) {
                 rb_ary_push(arr, values[i]);
             }
             rb_ary_push(list, arr);
         }
+#endif
     }
     /*
     stmt_free_result(obj_stmt);
