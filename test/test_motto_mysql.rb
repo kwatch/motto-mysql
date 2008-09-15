@@ -162,6 +162,18 @@ module MysqlTestHelper
     assert_nil(obj.instance_variable_get('@col_boolean'))
   end
 
+  def _test_result_free(result=@result)
+    ex = assert_raise(Mysql::Error) { result.free() }
+    errmsg = 'Mysql::Result object is already freed'
+    assert_equal(errmsg, ex.message)
+  end
+
+  def _test_stmt_close(stmt=@stmt)
+    ex = assert_raise(Mysql::Error) { stmt.close() }
+    errmsg = 'Mysql::Stmt object is already closed'
+    assert_equal(errmsg, ex.message)
+  end
+
 end
 
 
@@ -177,30 +189,21 @@ class MysqlResultTest < Test::Unit::TestCase
     hash = @result.fetch_one_hash()
     assert_instance_of(Hash, hash)
     _test_hash_data(hash)
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_one_array
     array = @result.fetch_one_array()
     assert_instance_of(Array, array)
     _test_array_data(array)
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_one_object
     obj = @result.fetch_one_object(MyObject)
     assert_instance_of(MyObject, obj)
     _test_object_data(obj)
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_all_hash
@@ -209,10 +212,7 @@ class MysqlResultTest < Test::Unit::TestCase
     assert_instance_of(Hash, hashes[0])
     _test_hash_data(hashes[0])
     _test_hash_null(hashes[1])
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_all_array
@@ -221,10 +221,7 @@ class MysqlResultTest < Test::Unit::TestCase
     assert_instance_of(Array, arrays[0])
     _test_array_data(arrays[0])
     _test_array_null(arrays[1])
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_all_object
@@ -233,30 +230,21 @@ class MysqlResultTest < Test::Unit::TestCase
     assert_instance_of(MyObject, objs[0])
     _test_object_data(objs[0])
     _test_object_null(objs[1])
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_all_hash_with_block
     @result.fetch_all_hash() do |hash|
       hash['col_integer'].nil? ? _test_hash_null(hash) : _test_hash_data(hash)
     end
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_all_array_with_block
     @result.fetch_all_array() do |arr|
       arr[0].nil? ? _test_array_null(arr) : _test_array_data(arr)
     end
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
   def test_fetch_all_object_with_block
@@ -264,10 +252,7 @@ class MysqlResultTest < Test::Unit::TestCase
       arr.instance_variable_get('@col_integer').nil? ? \
         _test_object_null(arr) : _test_object_data(arr)
     end
-    #
-    ex = assert_raise(Mysql::Error) { @result.free() }
-    errmsg = 'Mysql::Result object is already freed'
-    assert_equal(errmsg, ex.message)
+    _test_result_free(@result)
   end
 
 end
@@ -286,30 +271,21 @@ class MysqlStatementTest < Test::Unit::TestCase
     hash = @stmt.fetch_one_hash()
     assert_instance_of(Hash, hash)
     _test_hash_data(hash)
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_one_array
     array = @stmt.fetch_one_array()
     assert_instance_of(Array, array)
     _test_array_data(array)
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_one_object
     obj = @stmt.fetch_one_object(MyObject)
     assert_instance_of(MyObject, obj)
     _test_object_data(obj)
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_all_hash
@@ -318,10 +294,7 @@ class MysqlStatementTest < Test::Unit::TestCase
     assert_instance_of(Hash, hashes[0])
     _test_hash_data(hashes[0])
     _test_hash_null(hashes[1])
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_all_array
@@ -330,10 +303,7 @@ class MysqlStatementTest < Test::Unit::TestCase
     assert_instance_of(Array, arrays[0])
     _test_array_data(arrays[0])
     _test_array_null(arrays[1])
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_one_object
@@ -342,30 +312,21 @@ class MysqlStatementTest < Test::Unit::TestCase
     assert_instance_of(MyObject, objs[0])
     _test_object_data(objs[0])
     _test_object_null(objs[1])
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_all_hash_with_block
     @stmt.fetch_all_hash() do |hash|
       hash['col_integer'].nil? ? _test_hash_null(hash) : _test_hash_data(hash)
     end
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_all_array_with_block
     @stmt.fetch_all_array() do |arr|
       arr[0].nil? ? _test_array_null(arr) : _test_array_data(arr)
     end
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
   def test_fetch_all_object_with_block
@@ -373,10 +334,7 @@ class MysqlStatementTest < Test::Unit::TestCase
       arr.instance_variable_get('@col_integer').nil? ? \
         _test_object_null(arr) : _test_object_data(arr)
     end
-    #
-    ex = assert_raise(Mysql::Error) { @stmt.close }
-    errmsg = 'Mysql::Stmt object is already closed'
-    assert_equal(errmsg, ex.message)
+    _test_stmt_close(@stmt)
   end
 
 end
