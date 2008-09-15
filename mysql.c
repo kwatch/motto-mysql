@@ -1821,6 +1821,14 @@ static VALUE error_sqlstate(VALUE obj)
 
 #define MAX_IVAR_LENGTH 31
 
+ID id_new;
+ID id_initialize;
+ID id_create_timestamp;
+ID id_close;
+ID id_mktime;
+ID id_free;
+ID id_free_result;
+
 static VALUE create_ruby_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mday,
                                    VALUE hour, VALUE min, VALUE sec,
                                    VALUE neg, VALUE arg)
@@ -1829,7 +1837,7 @@ static VALUE create_ruby_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mda
         year = month = mday = INT2FIX(1970);
         month = mday = INT2FIX(1);
     }
-    return rb_funcall(rb_cTime, rb_intern("mktime"), 6,
+    return rb_funcall(rb_cTime, id_mktime, 6,
                       year, month, mday, hour, min, sec);
 }
 
@@ -1844,7 +1852,7 @@ static VALUE create_mysql_timestamp(VALUE obj, VALUE year, VALUE month, VALUE md
         month = INT2FIX(FIX2INT(month) + 1);
     */
     VALUE val = rb_obj_alloc(cMysqlTime);
-    rb_funcall(val, rb_intern("initialize"), 8,
+    rb_funcall(val, id_initialize, 8,
                year, month, mday, hour, min, sec, neg, arg);
     return val;
 }
@@ -1877,25 +1885,25 @@ static VALUE _result_get_value(char *str, unsigned int length, int type) {
         return rb_Float(string);
     case MYSQL_TYPE_TIMESTAMP:
         strptime(str, "%Y-%m-%d %H:%M:%S", &t);
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
                           INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
                           Qnil, Qnil);
     case MYSQL_TYPE_DATETIME:
         strptime(str, "%Y-%m-%d %H:%M:%S", &t);
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
                           INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
                           Qnil, Qnil);
     case MYSQL_TYPE_DATE:
         strptime(str, "%Y-%m-%d", &t);
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
                           Qnil, Qnil, Qnil,
                           Qnil, Qnil);
     case MYSQL_TYPE_TIME:
         strptime(str, "%H:%M:%S", &t);
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           Qnil, Qnil, Qnil,
                           INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
                           Qnil, Qnil);
@@ -1946,7 +1954,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
             }
             /* fetch_one_object */
             else {
-                VALUE obj = rb_funcall(klass, rb_intern("new"), 0);
+                VALUE obj = rb_funcall(klass, id_new, 0);
                 char buf[MAX_IVAR_LENGTH+1];
                 buf[0] = '@';
                 buf[MAX_IVAR_LENGTH] = '\0';
@@ -2002,10 +2010,10 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
                 strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH);
                 names[i] = rb_intern(buf);
             }
-            ID id_new = rb_intern("new");
+            ID id_new_ = id_new;
             while ((row = mysql_fetch_row(res)) != NULL) {
                 unsigned long* lengths = mysql_fetch_lengths(res);
-                VALUE obj = rb_funcall(klass, id_new, 0);
+                VALUE obj = rb_funcall(klass, id_new_, 0);
                 for (i = 0; i < n; i++) {
                     //VALUE val = row[i] ? _result_get_value(row[i], lengths[i], fields[i].type) : Qnil;
                     VALUE val = _result_get_value(row[i], lengths[i], fields[i].type);
@@ -2017,7 +2025,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
         ret = list;
     }
     /*res_free(obj_result);*/
-    rb_funcall(obj_result, rb_intern("free"), 0);
+    rb_funcall(obj_result, id_free, 0);
     return ret;
 }
 
@@ -2077,7 +2085,7 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_DATETIME:
         t = (MYSQL_TIME*)bind->buffer;
         val = rb_obj_alloc(cMysqlTime);
-        rb_funcall(val, rb_intern("initialize"), 8,
+        rb_funcall(val, id_initialize, 8,
                    INT2FIX(t->year), INT2FIX(t->month),
                    INT2FIX(t->day), INT2FIX(t->hour),
                    INT2FIX(t->minute), INT2FIX(t->second),
@@ -2087,19 +2095,19 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     case MYSQL_TYPE_TIMESTAMP:
     case MYSQL_TYPE_DATETIME:
         t = (MYSQL_TIME*)bind->buffer;
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           INT2FIX(t->year), INT2FIX(t->month), INT2FIX(t->day),
                           INT2FIX(t->hour), INT2FIX(t->minute), INT2FIX(t->second),
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
     case MYSQL_TYPE_DATE:
         t = (MYSQL_TIME*)bind->buffer;
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           INT2FIX(t->year), INT2FIX(t->month), INT2FIX(t->day),
                           Qnil, Qnil, Qnil,
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
     case MYSQL_TYPE_TIME:
         t = (MYSQL_TIME*)bind->buffer;
-        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+        return rb_funcall(cMysql, id_create_timestamp, 8,
                           Qnil, Qnil, Qnil,
                           INT2FIX(t->hour), INT2FIX(t->minute), INT2FIX(t->second),
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
@@ -2163,7 +2171,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
         /* fetch_one_object */
         else {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
-            VALUE obj = rb_funcall(klass, rb_intern("new"), 0);
+            VALUE obj = rb_funcall(klass, id_new, 0);
             char buf[MAX_IVAR_LENGTH+1];
             buf[0] = '@';
             buf[MAX_IVAR_LENGTH] = '\0';
@@ -2219,9 +2227,9 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
                 strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH);
                 names[i] = rb_intern(buf);
             }
-            ID id_new = rb_intern("new");
+            ID id_new_ = id_new;
             while ((r = mysql_stmt_fetch(s->stmt)) != MYSQL_NO_DATA && r != 1) {
-                VALUE obj = rb_funcall(klass, id_new, 0);
+                VALUE obj = rb_funcall(klass, id_new_, 0);
                 for (i = 0; i < n; i++) {
                     VALUE val = _stmt_get_value(s, i, buffer_types[i]);
                     rb_ivar_set(obj, names[i], val);
@@ -2237,8 +2245,8 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
     stmt_free_result(obj_stmt);
     stmt_close(obj_stmt);
     */
-    rb_funcall(obj_stmt, rb_intern("free_result"), 0);
-    rb_funcall(obj_stmt, rb_intern("close"), 0);
+    rb_funcall(obj_stmt, id_free_result, 0);
+    rb_funcall(obj_stmt, id_close, 0);
     return ret;
 }
 
@@ -3198,6 +3206,14 @@ void Init_mysql(void)
     rb_define_const(eMysql, "ER_ERROR_LAST", INT2NUM(ER_ERROR_LAST));
 
     /* ============================================================ */
+    id_new              = rb_intern("new");
+    id_initialize       = rb_intern("initialize");
+    id_create_timestamp = rb_intern("create_timestamp");
+    id_close            = rb_intern("close");
+    id_mktime           = rb_intern("mktime");
+    id_free             = rb_intern("free");
+    id_free_result      = rb_intern("free_result");
+
     rb_define_singleton_method(cMysql, "create_timestamp",       create_mysql_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
