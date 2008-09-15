@@ -40,7 +40,7 @@ end
 %>
 <%= matched[0] %>
 
-void Init_dokkan(void)
+void Init_mysql_dokkan(void)
 {
 <%= matched[1] %>
 }
