@@ -483,3 +483,51 @@ class MysqlStatementTest < Test::Unit::TestCase
   end
 
 end
+
+
+class InstanceVariableNameLengthTest < Test::Unit::TestCase
+  include MysqlTestHelper
+
+  TABLE  =  'foo123'
+  COLUMN =  '_123456789_123456789_123456789_123456789'
+  IVAR   = '@_123456789_123456789_123456789'
+
+  def setup
+    super
+    @conn.query("drop table if exists #{TABLE}")
+    @conn.query("create table #{TABLE}(#{COLUMN} integer)")
+    @conn.query("insert into #{TABLE} values(123)")
+  end
+
+  def teardown
+    @conn.query("drop table if exists #{TABLE}")
+    super
+  end
+
+  def test_ivar_name_length_for_result_fetch_one_object
+    result = @conn.query("select * from #{TABLE}")
+    obj = result.fetch_one_object(MyObject)
+    assert_equal([IVAR], obj.instance_variables)
+  end
+
+  def test_ivar_name_length_for_result_fetch_all_object
+    result = @conn.query("select * from #{TABLE}")
+    objs = result.fetch_all_object(MyObject)
+    assert_equal([IVAR], objs[0].instance_variables)
+  end
+
+  def test_ivar_name_length_for_stmt_fetch_one_object
+    stmt = @conn.prepare("select * from #{TABLE}")
+    stmt.execute()
+    obj = stmt.fetch_one_object(MyObject)
+    assert_equal([IVAR], obj.instance_variables)
+  end
+
+  def test_ivar_name_length_for_stmt_fetch_all_object
+    stmt = @conn.prepare("select * from #{TABLE}")
+    stmt.execute()
+    objs = stmt.fetch_all_object(MyObject)
+    assert_equal([IVAR], objs[0].instance_variables)
+  end
+
+end

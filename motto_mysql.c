@@ -162,14 +162,14 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
             /* fetch_one_object */
             else {
                 VALUE obj = rb_funcall(klass, id_new, 0);
-                char buf[MAX_IVAR_LENGTH+1];
+                char buf[MAX_IVAR_LENGTH + 1];
                 buf[0] = '@';
                 buf[MAX_IVAR_LENGTH] = '\0';
                 for (i = 0; i < n; i++) {
                     //VALUE val = row[i] ? _result_get_value(row[i], lengths[i], fields[i].type) : Qnil;
                     VALUE val = _result_get_value(row[i], lengths[i], fields[i].type);
                     //rb_ivar_set(obj, rb_intern(fields[i].name), val);
-                    strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH);
+                    strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH - 1);
                     rb_ivar_set(obj, rb_intern(buf), val);
                 }
                 ret = obj;
@@ -209,12 +209,12 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
         }
         /* fetch_all_object */
         else {
-            char buf[MAX_IVAR_LENGTH+1];
+            char buf[MAX_IVAR_LENGTH + 1];
             buf[0] = '@';
             buf[MAX_IVAR_LENGTH] = '\0';
             VALUE *names = alloca(n * sizeof(VALUE));
             for (i = 0; i < n; i++) {
-                strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH);
+                strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH - 1);
                 names[i] = rb_intern(buf);
             }
             ID id_new_ = id_new;
@@ -426,12 +426,12 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
         else {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
             VALUE obj = rb_funcall(klass, id_new, 0);
-            char buf[MAX_IVAR_LENGTH+1];
+            char buf[MAX_IVAR_LENGTH + 1];
             buf[0] = '@';
             buf[MAX_IVAR_LENGTH] = '\0';
             for (i = 0; i < n; i++) {
                 VALUE val = _stmt_get_value(s, i, buffer_types[i]);
-                strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH);
+                strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH - 1);
                 rb_ivar_set(obj, rb_intern(buf), val);
             }
             ret = obj;
@@ -473,12 +473,12 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
         /* fetch_all_object */
         else {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
-            char buf[MAX_IVAR_LENGTH+1];
+            char buf[MAX_IVAR_LENGTH + 1];
             buf[0] = '@';
             buf[MAX_IVAR_LENGTH] = '\0';
             VALUE *names = alloca(n * sizeof(VALUE));
             for (i = 0; i < n; i++) {
-                strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH);
+                strncpy(buf+1, fields[i].name, MAX_IVAR_LENGTH - 1);
                 names[i] = rb_intern(buf);
             }
             ID id_new_ = id_new;

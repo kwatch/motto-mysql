@@ -16,7 +16,7 @@ recipes:
 
   - product:	:clean
     method*: |
-	rm_rf 'Makefile', '$(target).h', '$(target).o', '$(target).bundle'
+	rm_rf 'Makefile', '$(target).h', '$(target).o', '$(target).bundle', 'confout', 'debug', 'mkmf.log'
 
   - product:	Makefile
     ingreds:	[ extconf.rb ]
