@@ -1,4 +1,4 @@
-/* -------------- copied from mysql-ruby-2.8pre4/mysql.c -------------- */
+/* ------------------------ copied from mysql.c ------------------------ */
 
 #define MYSQL_RUBY_VERSION 20800
 

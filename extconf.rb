@@ -1,9 +1,20 @@
-require 'mkmf'
-
 def die(msg)
   $stderr.puts "**** ERROR: #{msg}"
   exit 1
 end
+
+# rewrite MYSQL_RUBY_VERSION in motto_mysql.h
+require 'mysql.so'
+unless Mysql::VERSION >= 20704
+  die "mysql-ruby is too old (required >= 2.7.4)."
+end
+filename = 'motto_mysql.h'
+s = File.open(filename) {|f| f.read }
+s.sub! /^(\#define MYSQL_RUBY_VERSION\s+).*?$/, "\\1#{Mysql::VERSION}"
+File.open(filename, 'wb') {|f| f.write s }
+
+
+require 'mkmf'
 
 if /mswin32/ =~ RUBY_PLATFORM
   inc, lib = dir_config('mysql')
