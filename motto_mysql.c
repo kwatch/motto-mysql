@@ -129,7 +129,7 @@ static VALUE _result_get_value(char *str, unsigned int length, int type) {
     }
 }
 
-static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
+static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, int flag_free)
 {
     check_free(obj_result);
     MYSQL_RES* res = GetMysqlRes(obj_result);
@@ -240,39 +240,27 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one)
         ret = list;
     }
     /*res_free(obj_result);*/
-    rb_funcall(obj_result, id_free, 0);
+    if (flag_free) {
+        rb_funcall(obj_result, id_free, 0);
+    }
     return ret;
 }
 
-static VALUE result_fetch_one_hash(VALUE obj_result)
-{
-    return _result_fetch(obj_result, rb_cHash, 1);
-}
+static VALUE result_fetch_one_hash (VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 1, 1); }
+static VALUE result_fetch_one_hash2(VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 1, 0); }
+static VALUE result_fetch_all_hash (VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 0, 1); }
+static VALUE result_fetch_all_hash2(VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 0, 0); }
 
-static VALUE result_fetch_one_array(VALUE obj_result)
-{
-    return _result_fetch(obj_result, rb_cArray, 1);
-}
+static VALUE result_fetch_one_array (VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 1, 1); }
+static VALUE result_fetch_one_array2(VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 1, 0); }
+static VALUE result_fetch_all_array (VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 0, 1); }
+static VALUE result_fetch_all_array2(VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 0, 0); }
 
-static VALUE result_fetch_one_object(VALUE obj_result, VALUE klass)
-{
-    return _result_fetch(obj_result, klass, 1);
-}
+static VALUE result_fetch_one_object (VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 1, 1); }
+static VALUE result_fetch_one_object2(VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 1, 0); }
+static VALUE result_fetch_all_object (VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 0, 1); }
+static VALUE result_fetch_all_object2(VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 0, 0); }
 
-static VALUE result_fetch_all_hash(VALUE obj_result)
-{
-    return _result_fetch(obj_result, rb_cHash, 0);
-}
-
-static VALUE result_fetch_all_array(VALUE obj_result)
-{
-    return _result_fetch(obj_result, rb_cArray, 0);
-}
-
-static VALUE result_fetch_all_object(VALUE obj_result, VALUE klass)
-{
-    return _result_fetch(obj_result, klass, 0);
-}
 
 
 static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
@@ -378,7 +366,7 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     return Qnil;
 }
 
-static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
+static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int flag_free) {
     check_stmt_closed(obj_stmt);
     struct mysql_stmt* s = DATA_PTR(obj_stmt);
     MYSQL_RES* res = s->res;
@@ -507,40 +495,27 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one) {
     stmt_free_result(obj_stmt);
     stmt_close(obj_stmt);
     */
-    rb_funcall(obj_stmt, id_free_result, 0);
-    rb_funcall(obj_stmt, id_close, 0);
+    if (flag_free) {
+      rb_funcall(obj_stmt, id_free_result, 0);
+      rb_funcall(obj_stmt, id_close, 0);
+    }
     return ret;
 }
 
-static VALUE stmt_fetch_one_hash(VALUE obj_stmt)
-{
-    return _stmt_fetch(obj_stmt, rb_cHash, 1);
-}
+static VALUE stmt_fetch_one_hash (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 1, 1); }
+static VALUE stmt_fetch_one_hash2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 1, 0); }
+static VALUE stmt_fetch_all_hash (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 0, 1); }
+static VALUE stmt_fetch_all_hash2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 0, 0); }
 
-static VALUE stmt_fetch_one_array(VALUE obj_stmt)
-{
-    return _stmt_fetch(obj_stmt, rb_cArray, 1);
-}
+static VALUE stmt_fetch_one_array (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 1, 1); }
+static VALUE stmt_fetch_one_array2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 1, 0); }
+static VALUE stmt_fetch_all_array (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 0, 1); }
+static VALUE stmt_fetch_all_array2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 0, 0); }
 
-static VALUE stmt_fetch_one_object(VALUE obj_stmt, VALUE klass)
-{
-    return _stmt_fetch(obj_stmt, klass, 1);
-}
-
-static VALUE stmt_fetch_all_hash(VALUE obj_stmt)
-{
-    return _stmt_fetch(obj_stmt, rb_cHash, 0);
-}
-
-static VALUE stmt_fetch_all_array(VALUE obj_stmt)
-{
-    return _stmt_fetch(obj_stmt, rb_cArray, 0);
-}
-
-static VALUE stmt_fetch_all_object(VALUE obj_stmt, VALUE klass)
-{
-    return _stmt_fetch(obj_stmt, klass, 0);
-}
+static VALUE stmt_fetch_one_object (VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 1, 1); }
+static VALUE stmt_fetch_one_object2(VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 1, 0); }
+static VALUE stmt_fetch_all_object (VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 0, 1); }
+static VALUE stmt_fetch_all_object2(VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 0, 0); }
 
 
 
@@ -560,24 +535,45 @@ void Init_motto_mysql(void)
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
 
-    rb_define_method(cMysqlRes, "fetch_one_hash",    result_fetch_one_hash,   0);
-    rb_define_method(cMysqlRes, "fetch_one_array",   result_fetch_one_array,  0);
-    rb_define_method(cMysqlRes, "fetch_one_object",  result_fetch_one_object, 1);
-    rb_define_method(cMysqlRes, "fetch_all_hash",    result_fetch_all_hash,   0);
-    rb_define_method(cMysqlRes, "fetch_all_array",   result_fetch_all_array,  0);
-    rb_define_method(cMysqlRes, "fetch_all_object",  result_fetch_all_object, 1);
-    rb_define_method(cMysqlRes, "fetch_all_hashes",  result_fetch_all_hash,   0);
-    rb_define_method(cMysqlRes, "fetch_all_arrays",  result_fetch_all_array,  0);
-    rb_define_method(cMysqlRes, "fetch_all_objects", result_fetch_all_object, 1);
+    rb_define_method(cMysqlRes, "fetch_one_hash",     result_fetch_one_hash,    0);
+    rb_define_method(cMysqlRes, "fetch_one_array",    result_fetch_one_array,   0);
+    rb_define_method(cMysqlRes, "fetch_one_object",   result_fetch_one_object,  1);
+    rb_define_method(cMysqlRes, "fetch_all_hash",     result_fetch_all_hash,    0);
+    rb_define_method(cMysqlRes, "fetch_all_array",    result_fetch_all_array,   0);
+    rb_define_method(cMysqlRes, "fetch_all_object",   result_fetch_all_object,  1);
+    rb_define_method(cMysqlRes, "fetch_all_hashes",   result_fetch_all_hash,    0);
+    rb_define_method(cMysqlRes, "fetch_all_arrays",   result_fetch_all_array,   0);
+    rb_define_method(cMysqlRes, "fetch_all_objects",  result_fetch_all_object,  1);
 
-    rb_define_method(cMysqlStmt, "fetch_one_hash",    stmt_fetch_one_hash,   0);
-    rb_define_method(cMysqlStmt, "fetch_one_array",   stmt_fetch_one_array,  0);
-    rb_define_method(cMysqlStmt, "fetch_one_object",  stmt_fetch_one_object, 1);
-    rb_define_method(cMysqlStmt, "fetch_all_hash",    stmt_fetch_all_hash,   0);
-    rb_define_method(cMysqlStmt, "fetch_all_array",   stmt_fetch_all_array,  0);
-    rb_define_method(cMysqlStmt, "fetch_all_object",  stmt_fetch_all_object, 1);
-    rb_define_method(cMysqlStmt, "fetch_all_hashes",  stmt_fetch_all_hash,   0);
-    rb_define_method(cMysqlStmt, "fetch_all_arrays",  stmt_fetch_all_array,  0);
-    rb_define_method(cMysqlStmt, "fetch_all_objects", stmt_fetch_all_object, 1);
+    rb_define_method(cMysqlRes, "fetch_one_hash!",    result_fetch_one_hash2,   0);
+    rb_define_method(cMysqlRes, "fetch_one_array!",   result_fetch_one_array2,  0);
+    rb_define_method(cMysqlRes, "fetch_one_object!",  result_fetch_one_object2, 1);
+    rb_define_method(cMysqlRes, "fetch_all_hash!",    result_fetch_all_hash2,   0);
+    rb_define_method(cMysqlRes, "fetch_all_array!",   result_fetch_all_array2,  0);
+    rb_define_method(cMysqlRes, "fetch_all_object!",  result_fetch_all_object2, 1);
+    rb_define_method(cMysqlRes, "fetch_all_hashes!",  result_fetch_all_hash2,   0);
+    rb_define_method(cMysqlRes, "fetch_all_arrays!",  result_fetch_all_array2,  0);
+    rb_define_method(cMysqlRes, "fetch_all_objects!", result_fetch_all_object2, 1);
+
+
+    rb_define_method(cMysqlStmt, "fetch_one_hash",     stmt_fetch_one_hash,    0);
+    rb_define_method(cMysqlStmt, "fetch_one_array",    stmt_fetch_one_array,   0);
+    rb_define_method(cMysqlStmt, "fetch_one_object",   stmt_fetch_one_object,  1);
+    rb_define_method(cMysqlStmt, "fetch_all_hash",     stmt_fetch_all_hash,    0);
+    rb_define_method(cMysqlStmt, "fetch_all_array",    stmt_fetch_all_array,   0);
+    rb_define_method(cMysqlStmt, "fetch_all_object",   stmt_fetch_all_object,  1);
+    rb_define_method(cMysqlStmt, "fetch_all_hashes",   stmt_fetch_all_hash,    0);
+    rb_define_method(cMysqlStmt, "fetch_all_arrays",   stmt_fetch_all_array,   0);
+    rb_define_method(cMysqlStmt, "fetch_all_objects",  stmt_fetch_all_object,  1);
+
+    rb_define_method(cMysqlStmt, "fetch_one_hash!",    stmt_fetch_one_hash2,   0);
+    rb_define_method(cMysqlStmt, "fetch_one_array!",   stmt_fetch_one_array2,  0);
+    rb_define_method(cMysqlStmt, "fetch_one_object!",  stmt_fetch_one_object2, 1);
+    rb_define_method(cMysqlStmt, "fetch_all_hash!",    stmt_fetch_all_hash2,   0);
+    rb_define_method(cMysqlStmt, "fetch_all_array!",   stmt_fetch_all_array2,  0);
+    rb_define_method(cMysqlStmt, "fetch_all_object!",  stmt_fetch_all_object2, 1);
+    rb_define_method(cMysqlStmt, "fetch_all_hashes!",  stmt_fetch_all_hash2,   0);
+    rb_define_method(cMysqlStmt, "fetch_all_arrays!",  stmt_fetch_all_array2,  0);
+    rb_define_method(cMysqlStmt, "fetch_all_objects!", stmt_fetch_all_object2, 1);
 
 }

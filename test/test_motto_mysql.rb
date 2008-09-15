@@ -253,10 +253,18 @@ module MottoMysqlTestHelper
     assert_equal(errmsg, ex.message)
   end
 
+  def _test_result_free!(result=@result)
+    assert_nothing_raised(Mysql::Error) { result.free() }
+  end
+
   def _test_stmt_close(stmt=@stmt)
     ex = assert_raise(Mysql::Error) { stmt.close() }
     errmsg = 'Mysql::Stmt object is already closed'
     assert_equal(errmsg, ex.message)
+  end
+
+  def _test_stmt_close!(stmt=@stmt)
+    assert_nothing_raised(Mysql::Error) { stmt.close() }
   end
 
 end
@@ -309,6 +317,17 @@ class MottoMysqlResultTest < Test::Unit::TestCase
     end
   end
 
+  def test_fetch_one_hash!
+    (0..2).each do |i|
+      result = @results[i]
+      hash = result.fetch_one_hash!()
+      assert_instance_of(Hash, hash)
+      _test_hash_data(hash, i)
+      _test_result_free!(result)
+    end
+  end
+
+
   def test_fetch_one_array
     (0..2).each do |i|
       result = @results[i]
@@ -318,6 +337,17 @@ class MottoMysqlResultTest < Test::Unit::TestCase
       _test_result_free(result)
     end
   end
+
+  def test_fetch_one_array!
+    (0..2).each do |i|
+      result = @results[i]
+      array = result.fetch_one_array!()
+      assert_instance_of(Array, array)
+      _test_array_data(array, i)
+      _test_result_free!(result)
+    end
+  end
+
 
   def test_fetch_one_object
     (0..2).each do |i|
@@ -329,35 +359,79 @@ class MottoMysqlResultTest < Test::Unit::TestCase
     end
   end
 
+  def test_fetch_one_object!
+    (0..2).each do |i|
+      result = @results[i]
+      obj = result.fetch_one_object!(MyObject)
+      assert_instance_of(MyObject, obj)
+      _test_object_data(obj, i)
+      _test_result_free!(result)
+    end
+  end
+
+
   def test_fetch_all_hash
     hashes = @result.fetch_all_hash()
+    _test_fetch_all_hash(hashes)
+    _test_result_free(@result)
+  end
+
+  def test_fetch_all_hash!
+    hashes = @result.fetch_all_hash!()
+    _test_fetch_all_hash(hashes)
+    _test_result_free!(@result)
+  end
+
+  def _test_fetch_all_hash(hashes)
     assert_instance_of(Array,  hashes)
     assert_instance_of(Hash, hashes[0])
     _test_hash_data(hashes[0], 0)
     _test_hash_data(hashes[1], 1)
     _test_hash_data(hashes[2], 2)
-    _test_result_free(@result)
   end
+
 
   def test_fetch_all_array
     arrays = @result.fetch_all_array()
+    _test_fetch_all_array(arrays)
+    _test_result_free(@result)
+  end
+
+  def test_fetch_all_array!
+    arrays = @result.fetch_all_array!()
+    _test_fetch_all_array(arrays)
+    _test_result_free!(@result)
+  end
+
+  def _test_fetch_all_array(arrays)
     assert_instance_of(Array, arrays)
     assert_instance_of(Array, arrays[0])
     _test_array_data(arrays[0], 0)
     _test_array_data(arrays[1], 1)
     _test_array_data(arrays[2], 2)
-    _test_result_free(@result)
   end
+
 
   def test_fetch_all_object
     objs = @result.fetch_all_object(MyObject)
+    _test_fetch_all_object(objs)
+    _test_result_free(@result)
+  end
+
+  def test_fetch_all_object!
+    objs = @result.fetch_all_object!(MyObject)
+    _test_fetch_all_object(objs)
+    _test_result_free!(@result)
+  end
+
+  def _test_fetch_all_object(objs)
     assert_instance_of(Array, objs)
     assert_instance_of(MyObject, objs[0])
     _test_object_data(objs[0], 0)
     _test_object_data(objs[1], 1)
     _test_object_data(objs[2], 2)
-    _test_result_free(@result)
   end
+
 
   def test_fetch_all_hash_with_block
     i = 0
@@ -368,6 +442,16 @@ class MottoMysqlResultTest < Test::Unit::TestCase
     _test_result_free(@result)
   end
 
+  def test_fetch_all_hash_with_block!
+    i = 0
+    @result.fetch_all_hash!() do |hash|
+      _test_hash_data(hash, i)
+      i += 1
+    end
+    _test_result_free!(@result)
+  end
+
+
   def test_fetch_all_array_with_block
     i = 0
     @result.fetch_all_array() do |arr|
@@ -377,6 +461,16 @@ class MottoMysqlResultTest < Test::Unit::TestCase
     _test_result_free(@result)
   end
 
+  def test_fetch_all_array_with_block!
+    i = 0
+    @result.fetch_all_array!() do |arr|
+      _test_array_data(arr, i)
+      i += 1
+    end
+    _test_result_free!(@result)
+  end
+
+
   def test_fetch_all_object_with_block
     i = 0
     @result.fetch_all_object(MyObject) do |obj|
@@ -384,6 +478,15 @@ class MottoMysqlResultTest < Test::Unit::TestCase
       i += 1
     end
     _test_result_free(@result)
+  end
+
+  def test_fetch_all_object_with_block!
+    i = 0
+    @result.fetch_all_object!(MyObject) do |obj|
+      _test_object_data(obj, i)
+      i += 1
+    end
+    _test_result_free!(@result)
   end
 
 end
@@ -421,6 +524,17 @@ class MottoMysqlStatementTest < Test::Unit::TestCase
     end
   end
 
+  def test_fetch_one_hash!
+    (0..2).each do |i|
+      (stmt = @stmts[i]).execute()
+      hash = stmt.fetch_one_hash!()
+      assert_instance_of(Hash, hash)
+      _test_hash_data(hash, i)
+      _test_stmt_close!(stmt)
+    end
+  end
+
+
   def test_fetch_one_array
     (0..2).each do |i|
       (stmt = @stmts[i]).execute()
@@ -430,6 +544,17 @@ class MottoMysqlStatementTest < Test::Unit::TestCase
       _test_stmt_close(stmt)
     end
   end
+
+  def test_fetch_one_array!
+    (0..2).each do |i|
+      (stmt = @stmts[i]).execute()
+      array = stmt.fetch_one_array!()
+      assert_instance_of(Array, array)
+      _test_array_data(array, i)
+      _test_stmt_close!(stmt)
+    end
+  end
+
 
   def test_fetch_one_object
     (0..2).each do |i|
@@ -441,35 +566,79 @@ class MottoMysqlStatementTest < Test::Unit::TestCase
     end
   end
 
+  def test_fetch_one_object!
+    (0..2).each do |i|
+      (stmt = @stmts[i]).execute()
+      obj = stmt.fetch_one_object!(MyObject)
+      assert_instance_of(MyObject, obj)
+      _test_object_data(obj, i)
+      _test_stmt_close!(stmt)
+    end
+  end
+
+
   def test_fetch_all_hash
     hashes = @stmt.fetch_all_hash()
+    _test_fetch_all_hash(hashes)
+    _test_stmt_close(@stmt)
+  end
+
+  def test_fetch_all_hash!
+    hashes = @stmt.fetch_all_hash!()
+    _test_fetch_all_hash(hashes)
+    _test_stmt_close!(@stmt)
+  end
+
+  def _test_fetch_all_hash(hashes)
     assert_instance_of(Array, hashes)
     assert_instance_of(Hash, hashes[0])
     _test_hash_data(hashes[0], 0)
     _test_hash_data(hashes[1], 1)
     _test_hash_data(hashes[2], 2)
-    _test_stmt_close(@stmt)
   end
+
 
   def test_fetch_all_array
     arrays = @stmt.fetch_all_array()
+    _test_fetch_all_array(arrays)
+    _test_stmt_close(@stmt)
+  end
+
+  def test_fetch_all_array!
+    arrays = @stmt.fetch_all_array!()
+    _test_fetch_all_array(arrays)
+    _test_stmt_close!(@stmt)
+  end
+
+  def _test_fetch_all_array(arrays)
     assert_instance_of(Array, arrays)
     assert_instance_of(Array, arrays[0])
     _test_array_data(arrays[0], 0)
     _test_array_data(arrays[1], 1)
     _test_array_data(arrays[2], 2)
-    _test_stmt_close(@stmt)
   end
+
 
   def test_fetch_all_object
     objs = @stmt.fetch_all_object(MyObject)
+    _test_fetch_all_object(objs)
+    _test_stmt_close(@stmt)
+  end
+
+  def test_fetch_all_object!
+    objs = @stmt.fetch_all_object!(MyObject)
+    _test_fetch_all_object(objs)
+    _test_stmt_close!(@stmt)
+  end
+
+  def _test_fetch_all_object(objs)
     assert_instance_of(Array, objs)
     assert_instance_of(MyObject, objs[0])
     _test_object_data(objs[0], 0)
     _test_object_data(objs[1], 1)
     _test_object_data(objs[2], 2)
-    _test_stmt_close(@stmt)
   end
+
 
   def test_fetch_all_hash_with_block
     i = 0
@@ -480,6 +649,16 @@ class MottoMysqlStatementTest < Test::Unit::TestCase
     _test_stmt_close(@stmt)
   end
 
+  def test_fetch_all_hash_with_block!
+    i = 0
+    @stmt.fetch_all_hash!() do |hash|
+      _test_hash_data(hash, i)
+      i += 1
+    end
+    _test_stmt_close!(@stmt)
+  end
+
+
   def test_fetch_all_array_with_block
     i = 0
     @stmt.fetch_all_array() do |arr|
@@ -489,6 +668,16 @@ class MottoMysqlStatementTest < Test::Unit::TestCase
     _test_stmt_close(@stmt)
   end
 
+  def test_fetch_all_array_with_block!
+    i = 0
+    @stmt.fetch_all_array!() do |arr|
+      _test_array_data(arr, i)
+      i += 1
+    end
+    _test_stmt_close!(@stmt)
+  end
+
+
   def test_fetch_all_object_with_block
     i = 0
     @stmt.fetch_all_object(MyObject) do |arr|
@@ -496,6 +685,15 @@ class MottoMysqlStatementTest < Test::Unit::TestCase
       i += 1
     end
     _test_stmt_close(@stmt)
+  end
+
+  def test_fetch_all_object_with_block!
+    i = 0
+    @stmt.fetch_all_object!(MyObject) do |arr|
+      _test_object_data(arr, i)
+      i += 1
+    end
+    _test_stmt_close!(@stmt)
   end
 
 end
