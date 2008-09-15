@@ -19,7 +19,7 @@ recipes:
 
   - product:	:clean
     method*: |
-	rm_rf 'Makefile', '$(target).h', '$(target).o', '$(target).bundle', 'confout', 'debug', 'mkmf.log'
+	rm_rf 'Makefile', '$(target).h', '$(target).o', '$(target).bundle', 'debug', 'mkmf.log'
 
   - product:	Makefile
     ingreds:	[ extconf.rb ]
@@ -83,5 +83,3 @@ recipes:
 	s <<   "    }\n"
 	s <<   "#endif\n"
 	File.open('debug', 'w') {|f| f << s }
-
-	
