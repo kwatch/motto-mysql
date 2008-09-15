@@ -56,7 +56,7 @@ module MysqlTestHelper
     assert_instance_of(Time,   hash['col_date'])
     assert_instance_of(Time,   hash['col_datetime'])
     assert_instance_of(Time,   hash['col_timestamp'])
-    assert_instance_of(Fixnum, hash['col_boolean'])
+    assert_instance_of(TrueClass, hash['col_boolean'])
     #
     assert_equal(123,        hash['col_integer'])
     assert_equal(3.14159,       hash['col_float'])
@@ -67,7 +67,7 @@ module MysqlTestHelper
     assert_equal(Time.mktime(2008,1,1),          hash['col_date'])
     assert_equal(Time.mktime(2008,1,1,12,34,56), hash['col_datetime'])
     assert_equal(Time.mktime(2008,1,1,12,34,56), hash['col_timestamp'])
-    assert_equal(1,          hash['col_boolean'])
+    assert_equal(true,       hash['col_boolean'])
   end
 
   def _test_hash_null(hash)
@@ -95,7 +95,7 @@ module MysqlTestHelper
     assert_instance_of(Time,   arr[6])
     assert_instance_of(Time,   arr[7])
     assert_instance_of(Time,   arr[8])
-    assert_instance_of(Fixnum, arr[9])
+    assert_instance_of(TrueClass, arr[9])
     #
     assert_equal(123,        arr[0])
     assert_equal(3.14159,       arr[1])
@@ -106,7 +106,7 @@ module MysqlTestHelper
     assert_equal(Time.mktime(2008,1,1),          arr[6])
     assert_equal(Time.mktime(2008,1,1,12,34,56), arr[7])
     assert_equal(Time.mktime(2008,1,1,12,34,56), arr[8])
-    assert_equal(1,          arr[9])
+    assert_equal(true,       arr[9])
   end
 
   def _test_array_null(arr)
@@ -135,7 +135,7 @@ module MysqlTestHelper
     assert_instance_of(Time,   obj.instance_variable_get('@col_date'))
     assert_instance_of(Time,   obj.instance_variable_get('@col_datetime'))
     assert_instance_of(Time,   obj.instance_variable_get('@col_timestamp'))
-    assert_instance_of(Fixnum, obj.instance_variable_get('@col_boolean'))
+    assert_instance_of(TrueClass, obj.instance_variable_get('@col_boolean'))
     #
     assert_equal(123,        obj.instance_variable_get('@col_integer'))
     assert_equal(3.14159,       obj.instance_variable_get('@col_float'))
@@ -146,7 +146,7 @@ module MysqlTestHelper
     assert_equal(Time.mktime(2008,1,1),          obj.instance_variable_get('@col_date'))
     assert_equal(Time.mktime(2008,1,1,12,34,56), obj.instance_variable_get('@col_datetime'))
     assert_equal(Time.mktime(2008,1,1,12,34,56), obj.instance_variable_get('@col_timestamp'))
-    assert_equal(1,          obj.instance_variable_get('@col_boolean'))
+    assert_equal(true,       obj.instance_variable_get('@col_boolean'))
   end
 
   def _test_object_null(obj)
