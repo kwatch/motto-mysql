@@ -1795,6 +1795,188 @@ static VALUE time_equal(VALUE obj, VALUE v)
 
 #endif
 
+/* ============================================================ */
+#include <time.h>
+#include <assert.h>
+#include <alloca.h>
+
+static VALUE create_rubytime_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mday,
+                                       VALUE hour, VALUE min, VALUE sec,
+                                       VALUE neg, VALUE arg)
+{
+    if (year == Qnil) {
+        year = month = mday = INT2FIX(1970);
+        month = mday = INT2FIX(1);
+    }
+    return rb_funcall(rb_cTime, rb_intern("mktime"), 6,
+                      year, month, mday, hour, min, sec);
+}
+
+static VALUE create_mysqltime_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mday,
+                                        VALUE hour, VALUE min, VALUE sec,
+                                        VALUE neg, VALUE arg)
+{
+    //if (year != Qnil)
+    //    year = INT2FIX(FIX2INT(year) + 1900);
+    //if (month != Qnil)
+    //    month = INT2FIX(FIX2INT(month) + 1);
+    VALUE val = rb_obj_alloc(cMysqlTime);
+    rb_funcall(val, rb_intern("initialize"), 8,
+               year, month, mday, hour, min, sec, neg, arg);
+    return val;
+}
+
+static VALUE _to_value(char *str, unsigned int length, int type) {
+    /*
+    if (str == NULL)
+        return Qnil;
+    */
+    assert(str != NULL);
+    fflush(stderr);
+    VALUE val;
+    struct time_object *tobj;
+    struct tm t;
+    switch (type) {
+    case MYSQL_TYPE_STRING:
+        return rb_tainted_str_new(str, length);
+    case MYSQL_TYPE_LONG:
+    case MYSQL_TYPE_TINY:
+    case MYSQL_TYPE_SHORT:
+    case MYSQL_TYPE_INT24:
+        val = rb_tainted_str_new(str, length);
+        return rb_Integer(val);
+    case MYSQL_TYPE_LONGLONG:
+        val = rb_tainted_str_new(str, length);
+        return rb_Integer(val);
+    case MYSQL_TYPE_FLOAT:
+    case MYSQL_TYPE_DOUBLE:
+        val = rb_tainted_str_new(str, length);
+        return rb_Float(val);
+    case MYSQL_TYPE_TIMESTAMP:
+        strptime(str, "%Y-%m-%d %H:%M:%S", &t);
+        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+                          INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
+                          INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
+                          Qnil, Qnil);
+    case MYSQL_TYPE_DATETIME:
+        strptime(str, "%Y-%m-%d %H:%M:%S", &t);
+        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+                          INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
+                          INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
+                          Qnil, Qnil);
+    case MYSQL_TYPE_DATE:
+        strptime(str, "%Y-%m-%d", &t);
+        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+                          INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
+                          Qnil, Qnil, Qnil,
+                          Qnil, Qnil);
+    case MYSQL_TYPE_TIME:
+        strptime(str, "%H:%M:%S", &t);
+        return rb_funcall(cMysql, rb_intern("create_timestamp"), 8,
+                          Qnil, Qnil, Qnil,
+                          INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
+                          Qnil, Qnil);
+    case MYSQL_TYPE_BLOB:
+        return rb_tainted_str_new(str, length);
+    }
+    return rb_tainted_str_new(str, length);
+}
+
+static VALUE _result_fetch_one(VALUE obj_result, VALUE klass)
+{
+    check_free(obj_result);
+    MYSQL_RES* res = GetMysqlRes(obj_result);
+    int n = mysql_num_fields(res);
+    MYSQL_FIELD *fields = mysql_fetch_fields(res);
+    MYSQL_ROW row = mysql_fetch_row(res);
+    if (row == NULL)
+        return Qnil;
+    unsigned long *lengths = mysql_fetch_lengths(res);
+    VALUE ret;
+    int i;
+    if (klass == rb_cHash) {
+        ret = rb_hash_new();
+        for (i = 0; i < n; i++) {
+            VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+            rb_hash_aset(ret, rb_tainted_str_new2(fields[i].name), val);
+        }
+    }
+    else if (klass = rb_cArray) {
+        ret = rb_ary_new2(n);
+        for (i = 0; i < n; i++) {
+            VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+            rb_ary_push(ret, val);
+        }
+    }
+    /*res_free(obj_result);*/
+    rb_funcall(obj_result, rb_intern("free"), 0);
+    return ret;
+}
+
+static VALUE result_fetch_one_hash(VALUE obj_result)
+{
+    return _result_fetch_one(obj_result, rb_cHash);
+}
+
+static VALUE result_fetch_one_array(VALUE obj_result)
+{
+    return _result_fetch_one(obj_result, rb_cArray);
+}
+
+static VALUE _result_fetch_all(VALUE obj_result, VALUE klass)
+{
+    check_free(obj_result);
+    MYSQL_RES* res = GetMysqlRes(obj_result);
+    int n = mysql_num_fields(res);
+    MYSQL_FIELD *fields = mysql_fetch_fields(res);
+    VALUE list = rb_ary_new();
+    if (klass == rb_cHash) {
+        VALUE *names = alloca(n * sizeof(VALUE));
+        int i;
+        for (i = 0; i < n; i++) {
+            names[i] = rb_tainted_str_new2(fields[i].name);
+        }
+        MYSQL_ROW row;
+        while ((row = mysql_fetch_row(res)) != NULL) {
+            unsigned long* lengths = mysql_fetch_lengths(res);
+            VALUE hash = rb_hash_new();
+            for (i = 0; i < n; i++) {
+                VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+                rb_hash_aset(hash, names[i], val);
+            }
+            rb_ary_push(list, hash);
+        }
+    }
+    else if (klass == rb_cArray) {
+        MYSQL_ROW row;
+        while ((row = mysql_fetch_row(res)) != NULL) {
+            unsigned long* lengths = mysql_fetch_lengths(res);
+            VALUE arr = rb_ary_new2(n);
+            int i;
+            for (i = 0; i < n; i++) {
+                VALUE val = row[i] ? _to_value(row[i], lengths[i], fields[i].type) : Qnil;
+                rb_ary_push(arr, val);
+            }
+            rb_ary_push(list, arr);
+        }
+    }
+    /*res_free(obj_result);*/
+    rb_funcall(obj_result, rb_intern("free"), 0);
+    return list;
+}
+
+static VALUE result_fetch_all_hash(VALUE obj_result)
+{
+    return _result_fetch_all(obj_result, rb_cHash);
+}
+
+static VALUE result_fetch_all_array(VALUE obj_result)
+{
+    return _result_fetch_all(obj_result, rb_cArray);
+}
+
+/* ============================================================ */
+
 /*-------------------------------
  * Mysql::Error object method
  */
@@ -2736,4 +2918,15 @@ void Init_mysql(void)
     rb_define_const(eMysql, "ER_WRONG_STRING_LENGTH", INT2NUM(ER_WRONG_STRING_LENGTH));
     rb_define_const(eMysql, "ER_NON_INSERTABLE_TABLE", INT2NUM(ER_NON_INSERTABLE_TABLE));
     rb_define_const(eMysql, "ER_ERROR_LAST", INT2NUM(ER_ERROR_LAST));
+
+    /* ============================================================ */
+    rb_define_singleton_method(cMysql, "create_timestamp", create_mysqltime_timestamp, 8);
+    rb_define_singleton_method(cMysql, "create_mysqltime_timestamp", create_mysqltime_timestamp, 8);
+    rb_define_singleton_method(cMysql, "create_rubytime_timestamp", create_rubytime_timestamp, 8);
+
+    rb_define_method(cMysqlRes, "fetch_one_hash",  result_fetch_one_hash,  0);
+    rb_define_method(cMysqlRes, "fetch_one_array", result_fetch_one_array, 0);
+    rb_define_method(cMysqlRes, "fetch_all_hash",  result_fetch_all_hash,  0);
+    rb_define_method(cMysqlRes, "fetch_all_array", result_fetch_all_array, 0);
+    /* ============================================================ */
 }
