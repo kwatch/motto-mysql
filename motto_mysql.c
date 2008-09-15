@@ -1,3 +1,10 @@
+/**
+ **  $Rev$
+ **  $Release: $
+ **  $Copyright$
+ **  $License$
+ **/
+
 #include "ruby.h"
 #include "version.h"
 #ifdef HAVE_MYSQL_H
@@ -15,6 +22,7 @@ extern VALUE cMysql;
 
 #include "motto_mysql.h"
 
+char *MOTTO_MYSQL_VERSION = "$Release$";
 
 #include <time.h>
 #include <assert.h>
@@ -545,6 +553,8 @@ void Init_motto_mysql(void)
     id_mktime           = rb_intern("mktime");
     id_free             = rb_intern("free");
     id_free_result      = rb_intern("free_result");
+
+    rb_define_const(cMysql, "MOTTO_MYSQL_VERSION",  rb_str_freeze(rb_str_new2(MOTTO_MYSQL_VERSION)));
 
     rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);

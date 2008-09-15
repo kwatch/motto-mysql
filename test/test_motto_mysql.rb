@@ -29,7 +29,7 @@ class MyObject
 end
 
 
-module MysqlTestHelper
+module MottoMysqlTestHelper
 
   def setup
     @conn = Mysql.connect('localhost', 'username', 'password', 'dbname')
@@ -262,8 +262,24 @@ module MysqlTestHelper
 end
 
 
-class MysqlResultTest < Test::Unit::TestCase
-  include MysqlTestHelper
+class MottoMysqlTest < Test::Unit::TestCase
+
+  def test_motto_mysql_version
+    ## Mysql::MOTTO_MYSQL_VERSION is a frozen string
+    s = Mysql.const_get('MOTTO_MYSQL_VERSION')
+    assert_not_nil(s)
+    assert_instance_of(String, s)
+    ex = assert_raise(TypeError) do
+      s << "123"
+    end
+    assert_equal("can't modify frozen string", ex.message)
+  end
+
+end
+
+
+class MottoMysqlResultTest < Test::Unit::TestCase
+  include MottoMysqlTestHelper
 
   def setup
     super
@@ -373,8 +389,8 @@ class MysqlResultTest < Test::Unit::TestCase
 end
 
 
-class MysqlStatementTest < Test::Unit::TestCase
-  include MysqlTestHelper
+class MottoMysqlStatementTest < Test::Unit::TestCase
+  include MottoMysqlTestHelper
 
   def setup
     super
@@ -486,7 +502,7 @@ end
 
 
 class InstanceVariableNameLengthTest < Test::Unit::TestCase
-  include MysqlTestHelper
+  include MottoMysqlTestHelper
 
   TABLE  =  'foo123'
   COLUMN =  '_123456789_123456789_123456789_123456789'
