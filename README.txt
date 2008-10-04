@@ -26,7 +26,7 @@ Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
 
 * True or false will be returned instead of 1 or 0 if column type is tinyint.
 
-* 3.14 will be returned when Mysql::Stmt.fetch() returns 3.14000010490417.
+* 3.14 will be returned, while Mysql::Stmt.fetch() returns 3.14000010490417.
 
 
 ==  Install
