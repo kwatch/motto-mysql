@@ -135,43 +135,43 @@ The following is an example of steps to install.
 	Same as Mysql::Result#fetch_as_array() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_as_object(ClassObject)
+: Mysql::Result#fetch_as_object(class), Mysql::Result#fetch_as(class)
 	Similar to Mysql::Result#fetch_as_hash(), but instance object
 	of ClassObject is returned instead of hash object.
 	Column data are set as instance variables of the object.
 
-: Mysql::Result#fetch_as_object!(ClassObject)
+: Mysql::Result#fetch_as_object!(class), Mysql::Result#fetch_as!(class)
 	Same as Mysql::Result#fetch_as_object() but this doesn't call
 	Mysql::Result#free() automatically.
 
 
-: Mysql::Result#fetch_all_as_hashes(), Mysql::Result#fetch_all_as_hasheses()
+: Mysql::Result#fetch_all_as_hashes()
 	Fetch all records by Result#fetch_as_hash().
 	If block is given, it is called with each fetched hash object.
 	If block is not given, just returns an array of fetched hash objects.
 	Mysql::Result#free() is called automatically.
 
-: Mysql::Result#fetch_all_as_hashes!(), Mysql::Result#fetch_all_as_hasheses!(), 
+: Mysql::Result#fetch_all_as_hashes!()
 	Same as Mysql::Result#fetch_all_as_hashes() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_all_as_arrays(), Mysql::Result#fetch_all_as_arrayss()
+: Mysql::Result#fetch_all_as_arrays()
 	Fetch all records by Result#fetch_as_array().
 	If block is given, it is called with each fetched array object.
 	If block is not given, just returns an array of fetched array objects.
 	Mysql::Result#free() is called automatically.
 
-: Mysql::Result#fetch_all_as_arrays!(), Mysql::Result#fetch_all_as_arrayss!()
+: Mysql::Result#fetch_all_as_arrays!()
 	Same as Mysql::Result#fetch_all_as_arrays() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_all_as_objects(ClassObject), Mysql::Result#fetch_all_as_objectsss(ClassObject)
+: Mysql::Result#fetch_all_as_objects(class), Mysql::Result#fetch_all_as(class)
 	Fetch all records by Result#fetch_as_object().
 	If block is given, it is called with each fetched object.
 	If block is not given, just returns an array of fetched objects.
 	Mysql::Result#free() is called automatically.
 
-: Mysql::Result#fetch_all_as_objects!(), Mysql::Result#fetch_all_as_objectss!()
+: Mysql::Result#fetch_all_as_objects!(class), Mysql::Result#fetch_all_as!(class)
 	Same as Mysql::Result#fetch_all_as_objects() but this doesn't call
 	Mysql::Result#free() automatically.
 
