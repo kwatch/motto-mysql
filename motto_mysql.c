@@ -7,29 +7,32 @@
 
 #include "ruby.h"
 #include "version.h"
+
 #ifdef HAVE_MYSQL_H
 #include <mysql.h>
 #include <errmsg.h>
 #include <mysqld_error.h>
+#else
+#include <mysql/mysql.h>
+#include <mysql/errmsg.h>
+#include <mysql/mysqld_error.h>
 #endif
+
+#include <time.h>
+#include <assert.h>
+#include <alloca.h>
 
 extern VALUE cMysqlRes;
 extern VALUE cMysqlStmt;
 extern VALUE cMysqlTime;
 extern VALUE eMysql;
 extern VALUE cMysql;
-
-static VALUE cDate;
-static VALUE cDateTime;
-
+static VALUE cDate;          /* require 'date' */
+static VALUE cDateTime;      /* require 'date' */
 
 #include "motto_mysql.h"
 
 char *MOTTO_MYSQL_VERSION = "$Release$";
-
-#include <time.h>
-#include <assert.h>
-#include <alloca.h>
 
 #define MAX_IVAR_LENGTH 31
 
