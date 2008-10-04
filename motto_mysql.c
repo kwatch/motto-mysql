@@ -128,6 +128,17 @@ static VALUE create_mysql_time(VALUE obj, VALUE hour, VALUE min, VALUE sec,
     return val;
 }
 
+static VALUE create_ruby_timestamp_or_datetime(VALUE obj,
+                                   VALUE year, VALUE month, VALUE mday,
+                                   VALUE hour, VALUE min, VALUE sec,
+                                   VALUE neg, VALUE arg)
+{
+    int y = FIX2INT(year);
+    return 1970 <= y && y < 2038
+           ? create_ruby_timestamp(obj, year, month, mday, hour, min, sec, neg, arg)
+           : create_ruby_datetime(obj, year, month, mday, hour, min, sec, neg, arg);
+}
+
 
 static VALUE _result_get_value(char *str, unsigned int length, int type)
 {
@@ -607,7 +618,12 @@ void Init_motto_mysql(void)
 
 
     /* Mysql::create_{timestamp,datetime,date,time} */
+    rb_define_singleton_method(cMysql, "create_timestamp_or_datetime", create_ruby_timestamp_or_datetime, 8);
+if (sizeof(time_t) == 8) {
     rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp,  8);
+} else {
+    rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp_or_datetime,  8);
+}
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
 
@@ -619,9 +635,9 @@ void Init_motto_mysql(void)
     rb_define_singleton_method(cMysql, "create_ruby_date",       create_ruby_date,  5);
     rb_define_singleton_method(cMysql, "create_mysql_date",      create_mysql_date, 5);
 
-    rb_define_singleton_method(cMysql, "create_time",            create_ruby_date,  5);
-    rb_define_singleton_method(cMysql, "create_ruby_time",       create_ruby_date,  5);
-    rb_define_singleton_method(cMysql, "create_mysql_time",      create_mysql_date, 5);
+    rb_define_singleton_method(cMysql, "create_time",            create_ruby_time,  5);
+    rb_define_singleton_method(cMysql, "create_ruby_time",       create_ruby_time,  5);
+    rb_define_singleton_method(cMysql, "create_mysql_time",      create_mysql_time, 5);
 
 
     /* Mysql::Result */

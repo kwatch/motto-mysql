@@ -745,3 +745,51 @@ class InstanceVariableNameLengthTest < Test::Unit::TestCase
   end
 
 end
+
+
+
+class CreateTimestampTest < Test::Unit::TestCase
+
+  def test_create_timestamp
+    actual = Mysql.create_timestamp(2001, 2, 3, 12, 34, 56, nil, nil)
+    assert_instance_of(Time, actual)
+    assert_equal(Time.mktime(2001, 2, 3, 12, 34, 56), actual)
+  end
+
+  def test_create_datetime
+    actual = Mysql.create_datetime(2001, 2, 3, 12, 34, 56, nil, nil)
+    assert_instance_of(DateTime, actual)
+    assert_equal(DateTime.new(2001, 2, 3, 12, 34, 56), actual)
+  end
+
+  def test_create_date
+    actual = Mysql.create_date(2001, 2, 3, nil, nil)
+    assert_instance_of(Date, actual)
+    assert_equal(Date.new(2001, 2, 3), actual)
+  end
+
+  def test_create_time
+    actual = Mysql.create_time(12, 34, 56, nil, nil)
+    assert_instance_of(Time, actual)
+    assert_equal(Time.mktime(1970, 1, 1, 12, 34, 56), actual)
+  end
+
+  def test_create_timestamp_or_datetime
+    actual = Mysql.create_timestamp_or_datetime(1969, 12, 31, 23, 59, 59, nil, nil)
+    assert_instance_of(DateTime, actual)
+    assert_equal(DateTime.new(1969, 12, 31, 23, 59, 59), actual)
+    #
+    actual = Mysql.create_timestamp_or_datetime(1970, 1, 1, 0, 0, 0, nil, nil)
+    assert_instance_of(Time, actual)
+    assert_equal(Time.mktime(1970, 1, 1, 0, 0, 0), actual)
+    #
+    actual = Mysql.create_timestamp_or_datetime(2037, 12, 31, 23, 59, 59, nil, nil)
+    assert_instance_of(Time, actual)
+    assert_equal(Time.mktime(2037, 12, 31, 23, 59, 59), actual)
+    #
+    actual = Mysql.create_timestamp_or_datetime(2038, 1, 1, 0, 0, 0, nil, nil)
+    assert_instance_of(DateTime, actual)
+    assert_equal(DateTime.new(2038, 1, 1, 0, 0, 0), actual)
+  end
+
+end
