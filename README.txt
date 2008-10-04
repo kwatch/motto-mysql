@@ -203,28 +203,28 @@ The following is an example of steps to install.
 	Mysql::Stmt#free_result() and Mysql::Stmt#close().
 
 
-: Mysql::Result#fetch_all_as_hashes()
+: Mysql::Stmt#fetch_all_as_hashes()
 	Equivarent to Mysql::Result#fetch_all_as_hashes().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Result#fetch_all_as_hashes!()
+: Mysql::Stmt#fetch_all_as_hashes!()
 	Same as Mysql::Result#fetch_all_as_hashes() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
 
-: Mysql::Result#fetch_all_as_arrays()
+: Mysql::Stmt#fetch_all_as_arrays()
 	Equivarent to Mysql::Result#fetch_all_as_arrays().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Result#fetch_all_as_arrays!()
+: Mysql::Stmt#fetch_all_as_arrays!()
 	Same as Mysql::Result#fetch_all_as_arrays() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
-: Mysql::Result#fetch_all_as_objects(class), Mysql::Result#fetch_all_as(class)
+: Mysql::Stmt#fetch_all_as_objects(class), Mysql::Stmt#fetch_all_as(class)
 	Equivarent to Mysql::Result#fetch_all_as_objects().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Result#fetch_all_as_objects!(class), Mysql::Result#fetch_all_as!(class)
+: Mysql::Stmt#fetch_all_as_objects!(class), Mysql::Stmt#fetch_all_as!(class)
 	Same as Mysql::Result#fetch_all_as_objects() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
