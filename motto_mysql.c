@@ -19,6 +19,9 @@ extern VALUE cMysqlTime;
 extern VALUE eMysql;
 extern VALUE cMysql;
 
+static VALUE cDate;
+static VALUE cDateTime;
+
 
 #include "motto_mysql.h"
 
@@ -33,18 +36,19 @@ char *MOTTO_MYSQL_VERSION = "$Release$";
 ID id_new;
 ID id_initialize;
 ID id_create_timestamp;
+ID id_create_datetime;
+ID id_create_date;
+ID id_create_time;
 ID id_close;
 ID id_mktime;
 ID id_free;
 ID id_free_result;
 
+
 static VALUE create_ruby_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mday,
                                    VALUE hour, VALUE min, VALUE sec,
                                    VALUE neg, VALUE arg)
 {
-    if (year  == Qnil) year  = INT2FIX(1970);
-    if (month == Qnil) month = INT2FIX(1);
-    if (mday  == Qnil) mday  = INT2FIX(1);
     return rb_funcall(rb_cTime, id_mktime, 6,
                       year, month, mday, hour, min, sec);
 }
@@ -66,7 +70,67 @@ static VALUE create_mysql_timestamp(VALUE obj, VALUE year, VALUE month, VALUE md
 }
 
 
-static VALUE _result_get_value(char *str, unsigned int length, int type) {
+static VALUE create_ruby_datetime(VALUE obj, VALUE year, VALUE month, VALUE mday,
+                                  VALUE hour, VALUE min, VALUE sec,
+                                  VALUE neg, VALUE arg)
+{
+    return rb_funcall(cDateTime, id_new, 6,
+                      year, month, mday, hour, min, sec);
+}
+
+static VALUE create_mysql_datetime(VALUE obj, VALUE year, VALUE month, VALUE mday,
+                                   VALUE hour, VALUE min, VALUE sec,
+                                   VALUE neg, VALUE arg)
+{
+    VALUE val = rb_obj_alloc(cMysqlTime);
+    rb_funcall(val, id_initialize, 8,
+               year, month, mday, hour, min, sec, neg, arg);
+    return val;
+}
+
+
+static VALUE create_ruby_date(VALUE obj, VALUE year, VALUE month, VALUE mday,
+                              VALUE neg, VALUE arg)
+{
+    return rb_funcall(cDate, id_new, 3,
+                      year, month, mday);
+}
+
+static VALUE create_mysql_date(VALUE obj, VALUE year, VALUE month, VALUE mday,
+                               VALUE neg, VALUE arg)
+{
+    VALUE val = rb_obj_alloc(cMysqlTime);
+    rb_funcall(val, id_initialize, 8,
+               year, month, mday, Qnil, Qnil, Qnil, neg, arg);
+    return val;
+}
+
+
+static VALUE create_ruby_time(VALUE obj, VALUE hour, VALUE min, VALUE sec,
+                              VALUE neg, VALUE arg)
+{
+    return rb_funcall(rb_cTime, id_mktime, 6,
+                      INT2FIX(1970), INT2FIX(1), INT2FIX(1), hour, min, sec);
+}
+
+static VALUE create_mysql_time(VALUE obj, VALUE hour, VALUE min, VALUE sec,
+                               VALUE neg, VALUE arg)
+{
+    /*
+    if (year != Qnil)
+        year = INT2FIX(FIX2INT(year) + 1900);
+    if (month != Qnil)
+        month = INT2FIX(FIX2INT(month) + 1);
+    */
+    VALUE val = rb_obj_alloc(cMysqlTime);
+    rb_funcall(val, id_initialize, 8,
+               Qnil, Qnil, Qnil, hour, min, sec, neg, arg);
+    return val;
+}
+
+
+static VALUE _result_get_value(char *str, unsigned int length, int type)
+{
     if (str == NULL)
         return Qnil;
     assert(str != NULL);
@@ -106,20 +170,18 @@ static VALUE _result_get_value(char *str, unsigned int length, int type) {
                           Qnil, Qnil);
     case MYSQL_TYPE_DATETIME:
         strptime(str, "%Y-%m-%d %H:%M:%S", &t);
-        return rb_funcall(cMysql, id_create_timestamp, 8,
+        return rb_funcall(cMysql, id_create_datetime, 8,
                           INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
                           INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
                           Qnil, Qnil);
     case MYSQL_TYPE_DATE:
         strptime(str, "%Y-%m-%d", &t);
-        return rb_funcall(cMysql, id_create_timestamp, 8,
+        return rb_funcall(cMysql, id_create_date, 5,
                           INT2FIX(t.tm_year+1900), INT2FIX(t.tm_mon+1), INT2FIX(t.tm_mday),
-                          Qnil, Qnil, Qnil,
                           Qnil, Qnil);
     case MYSQL_TYPE_TIME:
         strptime(str, "%H:%M:%S", &t);
-        return rb_funcall(cMysql, id_create_timestamp, 8,
-                          Qnil, Qnil, Qnil,
+        return rb_funcall(cMysql, id_create_time, 5,
                           INT2FIX(t.tm_hour), INT2FIX(t.tm_min), INT2FIX(t.tm_sec),
                           Qnil, Qnil);
     /*case MYSQL_TYPE_BLOB:*/
@@ -322,22 +384,25 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
                    INT2FIX(t->second_part));
     */
     case MYSQL_TYPE_TIMESTAMP:
-    case MYSQL_TYPE_DATETIME:
         t = (MYSQL_TIME*)bind->buffer;
         return rb_funcall(cMysql, id_create_timestamp, 8,
                           INT2FIX(t->year), INT2FIX(t->month), INT2FIX(t->day),
                           INT2FIX(t->hour), INT2FIX(t->minute), INT2FIX(t->second),
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
+    case MYSQL_TYPE_DATETIME:
+        t = (MYSQL_TIME*)bind->buffer;
+        return rb_funcall(cMysql, id_create_datetime, 8,
+                          INT2FIX(t->year), INT2FIX(t->month), INT2FIX(t->day),
+                          INT2FIX(t->hour), INT2FIX(t->minute), INT2FIX(t->second),
+                          (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
     case MYSQL_TYPE_DATE:
         t = (MYSQL_TIME*)bind->buffer;
-        return rb_funcall(cMysql, id_create_timestamp, 8,
+        return rb_funcall(cMysql, id_create_date, 5,
                           INT2FIX(t->year), INT2FIX(t->month), INT2FIX(t->day),
-                          Qnil, Qnil, Qnil,
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
     case MYSQL_TYPE_TIME:
         t = (MYSQL_TIME*)bind->buffer;
-        return rb_funcall(cMysql, id_create_timestamp, 8,
-                          Qnil, Qnil, Qnil,
+        return rb_funcall(cMysql, id_create_time, 5,
                           INT2FIX(t->hour), INT2FIX(t->minute), INT2FIX(t->second),
                           (t->neg ? Qtrue : Qfalse), INT2FIX(t->second_part));
 #if MYSQL_RUBY_VERSION == 20704
@@ -366,7 +431,8 @@ static VALUE _stmt_get_value(struct mysql_stmt *s, int i, int buffer_type)
     return Qnil;
 }
 
-static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int flag_free) {
+static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int flag_free)
+{
     check_stmt_closed(obj_stmt);
     struct mysql_stmt* s = DATA_PTR(obj_stmt);
     MYSQL_RES* res = s->res;
@@ -524,6 +590,9 @@ void Init_motto_mysql(void)
     id_new              = rb_intern("new");
     id_initialize       = rb_intern("initialize");
     id_create_timestamp = rb_intern("create_timestamp");
+    id_create_datetime  = rb_intern("create_datetime");
+    id_create_date      = rb_intern("create_date");
+    id_create_time      = rb_intern("create_time");
     id_close            = rb_intern("close");
     id_mktime           = rb_intern("mktime");
     id_free             = rb_intern("free");
@@ -531,9 +600,29 @@ void Init_motto_mysql(void)
 
     rb_define_const(cMysql, "MOTTO_MYSQL_VERSION",  rb_str_freeze(rb_str_new2(MOTTO_MYSQL_VERSION)));
 
-    rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp, 8);
-    rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
+    /* require 'date' */
+    rb_require("date");
+    cDate     = rb_const_get(rb_cObject, rb_intern("Date"));
+    cDateTime = rb_const_get(rb_cObject, rb_intern("DateTime"));
+
+
+    /* Mysql::create_{timestamp,datetime,date,time} */
+    rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp,  8);
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
+    rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
+
+    rb_define_singleton_method(cMysql, "create_datetime",        create_ruby_datetime,   8);
+    rb_define_singleton_method(cMysql, "create_ruby_datetime",   create_ruby_datetime,   8);
+    rb_define_singleton_method(cMysql, "create_mysql_datetime",  create_mysql_datetime,  8);
+
+    rb_define_singleton_method(cMysql, "create_date",            create_ruby_date,  5);
+    rb_define_singleton_method(cMysql, "create_ruby_date",       create_ruby_date,  5);
+    rb_define_singleton_method(cMysql, "create_mysql_date",      create_mysql_date, 5);
+
+    rb_define_singleton_method(cMysql, "create_time",            create_ruby_date,  5);
+    rb_define_singleton_method(cMysql, "create_ruby_time",       create_ruby_date,  5);
+    rb_define_singleton_method(cMysql, "create_mysql_time",      create_mysql_date, 5);
+
 
     /* Mysql::Result */
     rb_define_method(cMysqlRes, "fetch_as_hash",         result_fetch_as_hash,   0);
