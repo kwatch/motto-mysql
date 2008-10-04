@@ -53,22 +53,17 @@ static VALUE create_ruby_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mda
                       year, month, mday, hour, min, sec);
 }
 
+/*
 static VALUE create_mysql_timestamp(VALUE obj, VALUE year, VALUE month, VALUE mday,
                                     VALUE hour, VALUE min, VALUE sec,
                                     VALUE neg, VALUE arg)
 {
-    /*
-    if (year != Qnil)
-        year = INT2FIX(FIX2INT(year) + 1900);
-    if (month != Qnil)
-        month = INT2FIX(FIX2INT(month) + 1);
-    */
     VALUE val = rb_obj_alloc(cMysqlTime);
     rb_funcall(val, id_initialize, 8,
                year, month, mday, hour, min, sec, neg, arg);
     return val;
 }
-
+*/
 
 static VALUE create_ruby_datetime(VALUE obj, VALUE year, VALUE month, VALUE mday,
                                   VALUE hour, VALUE min, VALUE sec,
@@ -78,6 +73,7 @@ static VALUE create_ruby_datetime(VALUE obj, VALUE year, VALUE month, VALUE mday
                       year, month, mday, hour, min, sec);
 }
 
+/*
 static VALUE create_mysql_datetime(VALUE obj, VALUE year, VALUE month, VALUE mday,
                                    VALUE hour, VALUE min, VALUE sec,
                                    VALUE neg, VALUE arg)
@@ -87,7 +83,7 @@ static VALUE create_mysql_datetime(VALUE obj, VALUE year, VALUE month, VALUE mda
                year, month, mday, hour, min, sec, neg, arg);
     return val;
 }
-
+*/
 
 static VALUE create_ruby_date(VALUE obj, VALUE year, VALUE month, VALUE mday,
                               VALUE neg, VALUE arg)
@@ -96,6 +92,7 @@ static VALUE create_ruby_date(VALUE obj, VALUE year, VALUE month, VALUE mday,
                       year, month, mday);
 }
 
+/*
 static VALUE create_mysql_date(VALUE obj, VALUE year, VALUE month, VALUE mday,
                                VALUE neg, VALUE arg)
 {
@@ -104,7 +101,7 @@ static VALUE create_mysql_date(VALUE obj, VALUE year, VALUE month, VALUE mday,
                year, month, mday, Qnil, Qnil, Qnil, neg, arg);
     return val;
 }
-
+*/
 
 static VALUE create_ruby_time(VALUE obj, VALUE hour, VALUE min, VALUE sec,
                               VALUE neg, VALUE arg)
@@ -113,20 +110,16 @@ static VALUE create_ruby_time(VALUE obj, VALUE hour, VALUE min, VALUE sec,
                       INT2FIX(1970), INT2FIX(1), INT2FIX(1), hour, min, sec);
 }
 
+/*
 static VALUE create_mysql_time(VALUE obj, VALUE hour, VALUE min, VALUE sec,
                                VALUE neg, VALUE arg)
 {
-    /*
-    if (year != Qnil)
-        year = INT2FIX(FIX2INT(year) + 1900);
-    if (month != Qnil)
-        month = INT2FIX(FIX2INT(month) + 1);
-    */
     VALUE val = rb_obj_alloc(cMysqlTime);
     rb_funcall(val, id_initialize, 8,
                Qnil, Qnil, Qnil, hour, min, sec, neg, arg);
     return val;
 }
+*/
 
 static VALUE create_ruby_timestamp_or_datetime(VALUE obj,
                                    VALUE year, VALUE month, VALUE mday,
@@ -617,27 +610,16 @@ void Init_motto_mysql(void)
     cDateTime = rb_const_get(rb_cObject, rb_intern("DateTime"));
 
 
-    /* Mysql::create_{timestamp,datetime,date,time} */
-    rb_define_singleton_method(cMysql, "create_timestamp_or_datetime", create_ruby_timestamp_or_datetime, 8);
+    /* Mysql::create_{timestamp,datetime,date,time,timestamp_or_datetime} */
 if (sizeof(time_t) == 8) {
-    rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp,  8);
+    rb_define_singleton_method(cMysql, "create_timestamp", create_ruby_timestamp, 8);
 } else {
-    rb_define_singleton_method(cMysql, "create_timestamp",       create_ruby_timestamp_or_datetime,  8);
+    rb_define_singleton_method(cMysql, "create_timestamp", create_ruby_timestamp_or_datetime,  8);
 }
-    rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
-    rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
-
-    rb_define_singleton_method(cMysql, "create_datetime",        create_ruby_datetime,   8);
-    rb_define_singleton_method(cMysql, "create_ruby_datetime",   create_ruby_datetime,   8);
-    rb_define_singleton_method(cMysql, "create_mysql_datetime",  create_mysql_datetime,  8);
-
-    rb_define_singleton_method(cMysql, "create_date",            create_ruby_date,  5);
-    rb_define_singleton_method(cMysql, "create_ruby_date",       create_ruby_date,  5);
-    rb_define_singleton_method(cMysql, "create_mysql_date",      create_mysql_date, 5);
-
-    rb_define_singleton_method(cMysql, "create_time",            create_ruby_time,  5);
-    rb_define_singleton_method(cMysql, "create_ruby_time",       create_ruby_time,  5);
-    rb_define_singleton_method(cMysql, "create_mysql_time",      create_mysql_time, 5);
+    rb_define_singleton_method(cMysql, "create_datetime",  create_ruby_datetime,  8);
+    rb_define_singleton_method(cMysql, "create_date",      create_ruby_date,      5);
+    rb_define_singleton_method(cMysql, "create_time",      create_ruby_time,      5);
+    rb_define_singleton_method(cMysql, "create_timestamp_or_datetime", create_ruby_timestamp_or_datetime,  8);
 
 
     /* Mysql::Result */
