@@ -146,7 +146,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
         }
         else {
             unsigned long *lengths = mysql_fetch_lengths(res);
-            /* fetch_one_hash */
+            /* fetch_as_hash */
             if (klass == rb_cHash) {
                 VALUE hash = rb_hash_new();
                 for (i = 0; i < n; i++) {
@@ -157,7 +157,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
                 }
                 ret = hash;
             }
-            /* fetch_one_array */
+            /* fetch_as_array */
             else if (klass == rb_cArray) {
                 VALUE arr = rb_ary_new2(n);
                 for (i = 0; i < n; i++) {
@@ -167,7 +167,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
                 }
                 ret = arr;
             }
-            /* fetch_one_object */
+            /* fetch_as_object */
             else {
                 VALUE obj = rb_funcall(klass, id_new, 0);
                 char buf[MAX_IVAR_LENGTH + 1];
@@ -188,7 +188,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
         VALUE list;
         int has_block = rb_block_given_p() == Qtrue;
         list = has_block ? Qnil : rb_ary_new();
-        /* fetch_all_hash */
+        /* fetch_all_as_hashes */
         if (klass == rb_cHash) {
             VALUE *keys = alloca(n * sizeof(VALUE));
             for (i = 0; i < n; i++)
@@ -203,7 +203,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
                 has_block ? rb_yield(hash) : rb_ary_push(list, hash);
             }
         }
-        /* fetch_all_array */
+        /* fetch_all_as_arrays */
         else if (klass == rb_cArray) {
             while ((row = mysql_fetch_row(res)) != NULL) {
                 unsigned long* lengths = mysql_fetch_lengths(res);
@@ -215,7 +215,7 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
                 has_block ? rb_yield(arr) : rb_ary_push(list, arr);
             }
         }
-        /* fetch_all_object */
+        /* fetch_all_as_objects */
         else {
             char buf[MAX_IVAR_LENGTH + 1];
             buf[0] = '@';
@@ -246,20 +246,20 @@ static VALUE _result_fetch(VALUE obj_result, VALUE klass, int flag_fetch_one, in
     return ret;
 }
 
-static VALUE result_fetch_one_hash (VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 1, 1); }
-static VALUE result_fetch_one_hash2(VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 1, 0); }
-static VALUE result_fetch_all_hash (VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 0, 1); }
-static VALUE result_fetch_all_hash2(VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 0, 0); }
+static VALUE result_fetch_as_hash (VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 1, 1); }
+static VALUE result_fetch_as_hash2(VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 1, 0); }
+static VALUE result_fetch_all_as_hashes (VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 0, 1); }
+static VALUE result_fetch_all_as_hashes2(VALUE obj_result) { return _result_fetch(obj_result, rb_cHash, 0, 0); }
 
-static VALUE result_fetch_one_array (VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 1, 1); }
-static VALUE result_fetch_one_array2(VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 1, 0); }
-static VALUE result_fetch_all_array (VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 0, 1); }
-static VALUE result_fetch_all_array2(VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 0, 0); }
+static VALUE result_fetch_as_array (VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 1, 1); }
+static VALUE result_fetch_as_array2(VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 1, 0); }
+static VALUE result_fetch_all_as_arrays (VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 0, 1); }
+static VALUE result_fetch_all_as_arrays2(VALUE obj_result) { return _result_fetch(obj_result, rb_cArray, 0, 0); }
 
-static VALUE result_fetch_one_object (VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 1, 1); }
-static VALUE result_fetch_one_object2(VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 1, 0); }
-static VALUE result_fetch_all_object (VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 0, 1); }
-static VALUE result_fetch_all_object2(VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 0, 0); }
+static VALUE result_fetch_as_object (VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 1, 1); }
+static VALUE result_fetch_as_object2(VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 1, 0); }
+static VALUE result_fetch_all_as_objects (VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 0, 1); }
+static VALUE result_fetch_all_as_objects2(VALUE obj_result, VALUE klass) { return _result_fetch(obj_result, klass, 0, 0); }
 
 
 
@@ -398,7 +398,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
             ret = Qnil; /* dummy */
             mysql_stmt_raise(s->stmt);
         }
-        /* fetch_one_hash */
+        /* fetch_as_hash */
         else if (klass == rb_cHash) {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
             VALUE hash = rb_hash_new();
@@ -409,7 +409,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
             }
             ret = hash;
         }
-        /* fetch_one_array */
+        /* fetch_as_array */
         else if (klass == rb_cArray) {
             VALUE arr = rb_ary_new();
             for (i = 0; i < n; i++) {
@@ -418,7 +418,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
             }
             ret = arr;
         }
-        /* fetch_one_object */
+        /* fetch_as_object */
         else {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
             VALUE obj = rb_funcall(klass, id_new, 0);
@@ -437,7 +437,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
         VALUE list;
         int has_block = rb_block_given_p() == Qtrue;
         list = has_block ? Qnil : rb_ary_new();
-        /* fetch_all_hash */
+        /* fetch_all_as_hashes */
         if (klass == rb_cHash) {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
             VALUE *keys = alloca(n * sizeof(VALUE));
@@ -454,7 +454,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
                 has_block ? rb_yield(hash) : rb_ary_push(list, hash);
             }
         }
-        /* fetch_all_array */
+        /* fetch_all_as_arrays */
         else if (klass == rb_cArray) {
             while ((r = mysql_stmt_fetch(s->stmt)) != MYSQL_NO_DATA && r != 1) {
                 VALUE arr = rb_ary_new2(n);
@@ -466,7 +466,7 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
                 has_block ? rb_yield(arr) : rb_ary_push(list, arr);
             }
         }
-        /* fetch_all_object */
+        /* fetch_all_as_objects */
         else {
             MYSQL_FIELD *fields = mysql_fetch_fields(res);
             char buf[MAX_IVAR_LENGTH + 1];
@@ -502,20 +502,20 @@ static VALUE _stmt_fetch(VALUE obj_stmt, VALUE klass, int flag_fetch_one, int fl
     return ret;
 }
 
-static VALUE stmt_fetch_one_hash (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 1, 1); }
-static VALUE stmt_fetch_one_hash2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 1, 0); }
-static VALUE stmt_fetch_all_hash (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 0, 1); }
-static VALUE stmt_fetch_all_hash2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 0, 0); }
+static VALUE stmt_fetch_as_hash (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 1, 1); }
+static VALUE stmt_fetch_as_hash2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 1, 0); }
+static VALUE stmt_fetch_all_as_hashes (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 0, 1); }
+static VALUE stmt_fetch_all_as_hashes2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cHash, 0, 0); }
 
-static VALUE stmt_fetch_one_array (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 1, 1); }
-static VALUE stmt_fetch_one_array2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 1, 0); }
-static VALUE stmt_fetch_all_array (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 0, 1); }
-static VALUE stmt_fetch_all_array2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 0, 0); }
+static VALUE stmt_fetch_as_array (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 1, 1); }
+static VALUE stmt_fetch_as_array2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 1, 0); }
+static VALUE stmt_fetch_all_as_arrays (VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 0, 1); }
+static VALUE stmt_fetch_all_as_arrays2(VALUE obj_stmt) { return _stmt_fetch(obj_stmt, rb_cArray, 0, 0); }
 
-static VALUE stmt_fetch_one_object (VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 1, 1); }
-static VALUE stmt_fetch_one_object2(VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 1, 0); }
-static VALUE stmt_fetch_all_object (VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 0, 1); }
-static VALUE stmt_fetch_all_object2(VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 0, 0); }
+static VALUE stmt_fetch_as_object (VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 1, 1); }
+static VALUE stmt_fetch_as_object2(VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 1, 0); }
+static VALUE stmt_fetch_all_as_objects (VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 0, 1); }
+static VALUE stmt_fetch_all_as_objects2(VALUE obj_stmt, VALUE klass) { return _stmt_fetch(obj_stmt, klass, 0, 0); }
 
 
 
@@ -535,45 +535,33 @@ void Init_motto_mysql(void)
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
 
-    rb_define_method(cMysqlRes, "fetch_one_hash",     result_fetch_one_hash,    0);
-    rb_define_method(cMysqlRes, "fetch_one_array",    result_fetch_one_array,   0);
-    rb_define_method(cMysqlRes, "fetch_one_object",   result_fetch_one_object,  1);
-    rb_define_method(cMysqlRes, "fetch_all_hash",     result_fetch_all_hash,    0);
-    rb_define_method(cMysqlRes, "fetch_all_array",    result_fetch_all_array,   0);
-    rb_define_method(cMysqlRes, "fetch_all_object",   result_fetch_all_object,  1);
-    rb_define_method(cMysqlRes, "fetch_all_hashes",   result_fetch_all_hash,    0);
-    rb_define_method(cMysqlRes, "fetch_all_arrays",   result_fetch_all_array,   0);
-    rb_define_method(cMysqlRes, "fetch_all_objects",  result_fetch_all_object,  1);
+    rb_define_method(cMysqlRes, "fetch_as_hash",         result_fetch_as_hash,   0);
+    rb_define_method(cMysqlRes, "fetch_as_array",        result_fetch_as_array,  0);
+    rb_define_method(cMysqlRes, "fetch_as_object",       result_fetch_as_object, 1);
+    rb_define_method(cMysqlRes, "fetch_all_as_hashes",   result_fetch_all_as_hashes,  0);
+    rb_define_method(cMysqlRes, "fetch_all_as_arrays",   result_fetch_all_as_arrays,  0);
+    rb_define_method(cMysqlRes, "fetch_all_as_objects",  result_fetch_all_as_objects, 1);
 
-    rb_define_method(cMysqlRes, "fetch_one_hash!",    result_fetch_one_hash2,   0);
-    rb_define_method(cMysqlRes, "fetch_one_array!",   result_fetch_one_array2,  0);
-    rb_define_method(cMysqlRes, "fetch_one_object!",  result_fetch_one_object2, 1);
-    rb_define_method(cMysqlRes, "fetch_all_hash!",    result_fetch_all_hash2,   0);
-    rb_define_method(cMysqlRes, "fetch_all_array!",   result_fetch_all_array2,  0);
-    rb_define_method(cMysqlRes, "fetch_all_object!",  result_fetch_all_object2, 1);
-    rb_define_method(cMysqlRes, "fetch_all_hashes!",  result_fetch_all_hash2,   0);
-    rb_define_method(cMysqlRes, "fetch_all_arrays!",  result_fetch_all_array2,  0);
-    rb_define_method(cMysqlRes, "fetch_all_objects!", result_fetch_all_object2, 1);
+    rb_define_method(cMysqlRes, "fetch_as_hash!",        result_fetch_as_hash2,   0);
+    rb_define_method(cMysqlRes, "fetch_as_array!",       result_fetch_as_array2,  0);
+    rb_define_method(cMysqlRes, "fetch_as_object!",      result_fetch_as_object2, 1);
+    rb_define_method(cMysqlRes, "fetch_all_as_hashes!",  result_fetch_all_as_hashes2,  0);
+    rb_define_method(cMysqlRes, "fetch_all_as_arrays!",  result_fetch_all_as_arrays2,  0);
+    rb_define_method(cMysqlRes, "fetch_all_as_objects!", result_fetch_all_as_objects2, 1);
 
 
-    rb_define_method(cMysqlStmt, "fetch_one_hash",     stmt_fetch_one_hash,    0);
-    rb_define_method(cMysqlStmt, "fetch_one_array",    stmt_fetch_one_array,   0);
-    rb_define_method(cMysqlStmt, "fetch_one_object",   stmt_fetch_one_object,  1);
-    rb_define_method(cMysqlStmt, "fetch_all_hash",     stmt_fetch_all_hash,    0);
-    rb_define_method(cMysqlStmt, "fetch_all_array",    stmt_fetch_all_array,   0);
-    rb_define_method(cMysqlStmt, "fetch_all_object",   stmt_fetch_all_object,  1);
-    rb_define_method(cMysqlStmt, "fetch_all_hashes",   stmt_fetch_all_hash,    0);
-    rb_define_method(cMysqlStmt, "fetch_all_arrays",   stmt_fetch_all_array,   0);
-    rb_define_method(cMysqlStmt, "fetch_all_objects",  stmt_fetch_all_object,  1);
+    rb_define_method(cMysqlStmt, "fetch_as_hash",         stmt_fetch_as_hash,    0);
+    rb_define_method(cMysqlStmt, "fetch_as_array",        stmt_fetch_as_array,   0);
+    rb_define_method(cMysqlStmt, "fetch_as_object",       stmt_fetch_as_object,  1);
+    rb_define_method(cMysqlStmt, "fetch_all_as_hashes",   stmt_fetch_all_as_hashes,   0);
+    rb_define_method(cMysqlStmt, "fetch_all_as_arrays",   stmt_fetch_all_as_arrays,   0);
+    rb_define_method(cMysqlStmt, "fetch_all_as_objects",  stmt_fetch_all_as_objects,  1);
 
-    rb_define_method(cMysqlStmt, "fetch_one_hash!",    stmt_fetch_one_hash2,   0);
-    rb_define_method(cMysqlStmt, "fetch_one_array!",   stmt_fetch_one_array2,  0);
-    rb_define_method(cMysqlStmt, "fetch_one_object!",  stmt_fetch_one_object2, 1);
-    rb_define_method(cMysqlStmt, "fetch_all_hash!",    stmt_fetch_all_hash2,   0);
-    rb_define_method(cMysqlStmt, "fetch_all_array!",   stmt_fetch_all_array2,  0);
-    rb_define_method(cMysqlStmt, "fetch_all_object!",  stmt_fetch_all_object2, 1);
-    rb_define_method(cMysqlStmt, "fetch_all_hashes!",  stmt_fetch_all_hash2,   0);
-    rb_define_method(cMysqlStmt, "fetch_all_arrays!",  stmt_fetch_all_array2,  0);
-    rb_define_method(cMysqlStmt, "fetch_all_objects!", stmt_fetch_all_object2, 1);
+    rb_define_method(cMysqlStmt, "fetch_as_hash!",        stmt_fetch_as_hash2,   0);
+    rb_define_method(cMysqlStmt, "fetch_as_array!",       stmt_fetch_as_array2,  0);
+    rb_define_method(cMysqlStmt, "fetch_as_object!",      stmt_fetch_as_object2, 1);
+    rb_define_method(cMysqlStmt, "fetch_all_as_hashes!",  stmt_fetch_all_as_hashes2,  0);
+    rb_define_method(cMysqlStmt, "fetch_all_as_arrays!",  stmt_fetch_all_as_arrays2,  0);
+    rb_define_method(cMysqlStmt, "fetch_all_as_objects!", stmt_fetch_all_as_objects2, 1);
 
 }
