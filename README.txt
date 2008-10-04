@@ -17,7 +17,7 @@ Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
 
 == Features
 
-* Add 'fetch_as_{hash,array,object}()' and 'fetch_all_as_{hash,array,object}()'
+* Add 'fetch_as_{hash,array,object}()' and 'fetch_all_as_{hashes,arrays,objects}()'
   methods into Mysql::Result and Mysql::Stmt classes.
   These methods returns proper data instead of String.
   For example, you can get 123 instead of "123", true/false instead of "1"/"0".
@@ -31,9 +31,9 @@ Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
 
 ==  Install
 
-1. Be sure that header files of Ruby and MySQL are installed.
-2. Install mysql-ruby (>= 2.7.4) if not installed yet.
-3. Install motto-mysql.
+(1) Be sure that header files of Ruby and MySQL are installed.
+(2) Install mysql-ruby (>= 2.7.4) if not installed yet.
+(3) Install motto-mysql.
 
 The following is an example of steps to install.
 
@@ -60,9 +60,9 @@ The following is an example of steps to install.
     conn = Mysql.connect('localhost', 'username', 'password', 'dbname')
     sql = 'select * from items';
     
-    ### Mysql::Result#fetch_hash() vs. Mysql::Result#fetch_as_hash()
+    ### Mysql::Result#fetch_as_hash() vs. Mysql::Result#fetch_as_hash()
     result = conn.query(sql)
-    p result.fetch_hash      #=> {"id"=>"1", "name"=>"foo", "price"=>"3.14",
+    p result.fetch_as_hash() #=> {"id"=>"1", "name"=>"foo", "price"=>"3.14",
                              #    "created_at"=>#<Mysql::Time>, "flag"=>"1" }
     result.free()
     result = conn.query(sql)
@@ -78,54 +78,43 @@ The following is an example of steps to install.
     p result.fetch_as_hash   #=> {1, "foo", 3.14, #<Time>, true }
     result.free()            #=> Mysql::Error ("Mysql::Result object is freed.")
     
-    ### Mysql::Result#fetch_as_object()
+    ### Mysql::Result#fetch_as()
     class MyObject
     end
     result = conn.query(sql)
-    result.fetch_as_object(MyClass)
-                             #=> #<MyClass @id=1, @name="foo", @price=>3.14,
+    result.fetch_as(MyClass) #=> #<MyClass @id=1, @name="foo", @price=>3.14,
                                            @created_at=>#<Time>, @flag=>true>
     result.free()            #=> Mysql::Error ("Mysql::Result object is freed.")
     
     ### Mysql::Result#fetch_all_as_hashes()
     result = conn.query(sql)
-    p result.fetch_all_as_hashes  #=> [ {"id"=>1, "name"=>"foo", ... },
-                             #     {"id"=>2, "name"=>"bar", ... }, ]
+    p result.fetch_all_as_hashes   #=> [ {"id"=>1, "name"=>"foo", ... },
+                                   #     {"id"=>2, "name"=>"bar", ... }, ]
     # or result.fetch_all_as_hashes {|hash| p hash }
     
     ### Mysql::Result#fetch_all_as_arrays()
     result = conn.query(sql)
-    p result.fetch_all_as_arrays #=> [ [1, "foo", 3.14, ...],
-                             #     [2, "bar", 3.15, ...], ]
+    p result.fetch_all_as_arrays   #=> [ [1, "foo", 3.14, ...],
+                                   #     [2, "bar", 3.15, ...], ]
     # or result.fetch_all_as_arrays {|array| p array }
     
-    ### Mysql::Result#fetch_all_as_objects()
+    ### Mysql::Result#fetch_all_as()
     result = conn.query(sql)
-    p result.fetch_all_as_objects(MyClass)
-                             #=> [ #<MyObject @id=1, @name="foo", ...>,
-                             #     #<MyObject @id=2, @name="bar", ...>, ]
-    # or result.fetch_all_as_objects(MyClass) {|object| p object }
+    p result.fetch_all_as(MyClass) #=> [ #<MyObject @id=1, @name="foo", ...>,
+                                   #     #<MyObject @id=2, @name="bar", ...>, ]
+    # or result.fetch_all_as(MyClass) {|object| p object }
     
-    ### Change to return Mysql::Time object instead of Time object,
-    ### because Time only supports limited range.
-    ### For examle, Time.mktime(1800, 1, 1) will raise ArgumentError
-    ### while Mysql::Time doesn't.
-    class <<Mysql
-      alias create_timestamp create_mysql_timestamp
-      #alias create_timestamp create_ruby_timestamp
-    end
-
 
 == API
 
 === class Mysql::Result
 
 : Mysql::Result#fetch_as_hash()
-	Similar to Mysql::Result#fetch_hash(), but values are converted
+	Similar to Mysql::Result#fetch_as_hash(), but values are converted
 	into proper class and Mysql::Result#free() is called automatically.
 	For example, Mysql::Result#fetch_as_hash() returns
 	{'id'=>1, 'float'=>3.14, 'date'=>Time.mktime(2008, 1, 1), 'flag'=>true}
-	while Mysql::Result#fetch_hash() returns
+	while Mysql::Result#fetch_as_hash() returns
 	{'id'=>"1", 'float'=>"3.14", 'date'=>"2008-01-01", 'flag'=>"1"}
 	.
 
@@ -240,25 +229,21 @@ The following is an example of steps to install.
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
 
-== Trouble shooting
 
-=== ArgumentError raised
+== Tips
 
-If you got ArgumentError, it mean that date or timestamp is too old for Ruby's
-Time class to support.
-For example, '1960-01-01' will raise ArgumentError because
-Time.mktime(1960, 1, 1) will raise ArgumentError.
+=== Timestamp class
 
-In this case, you should use Mysql::Time class instead of Ruby's Time class.
+If column type is timestamp, fetch_as_xxx() and fetch_all_as_xxx() methods
+in Mysql::Result and Mysql::Stmt classes returns:
 
-    ### Change to return Mysql::Time object instead of Time object,
-    ### because Time only supports limited range.
-    ### For examle, Time.mktime(1800, 1, 1) will raise ArgumentError
-    ### while Mysql::Time doesn't.
-    class <<Mysql
-      alias create_timestamp create_mysql_timestamp
-      #alias create_timestamp create_ruby_timestamp
-    end
+* Time object when 1970 <= year < 2038
+* DateTime object when year < 1970 or 2038 <= year
+
+Because Ruby's Time class causes ArgumentError when year < 1970 or 2038 <= year.
+
+(Notice that this is for 32bit environment. If you are in 64 bit environment,
+ Ruby's Time object will be returned everytime.)
 
 
 == License

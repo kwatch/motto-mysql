@@ -24,7 +24,8 @@ recipes:
   - product:	Makefile
     ingreds:	[ extconf.rb ]
     method*: |
-	sys "ruby extconf.rb --with-mysql-dir=/usr/local/mysql"
+	#sys "ruby extconf.rb --with-mysql-dir=/usr/local/mysql"
+	sys "ruby extconf.rb --with-mysql-config"
 
   - product:	:header
     ingreds:	[ $(target).h ]
@@ -64,6 +65,15 @@ recipes:
 	File.open(@product, 'w') {|f| f.write(s) }
 
 
+  - product:	README.html
+    ingreds:	[ README.txt ]
+    method*: |
+	##sys "rdoc -1 #{@ingred} > #{@product}"
+	#sys "rdoc --template hefss  #{@ingred}"
+	##sys "rdoc --template kilmer #{@ingred}"
+	#mv "doc/files/README_txt.html", @product
+	#rm_rf "doc"
+	sys "rd2 #{@ingred} > #{@product}"
 
   - product:	:debug
     method*: |
