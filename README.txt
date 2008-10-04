@@ -243,7 +243,7 @@ in Mysql::Result and Mysql::Stmt classes returns:
 Because Ruby's Time class causes ArgumentError when year < 1970 or 2038 <= year.
 
 (Notice that this is for 32bit environment. If you are in 64 bit environment,
- Ruby's Time object will be returned everytime.)
+Ruby's Time object will be returned everytime.)
 
 
 == License
