@@ -535,33 +535,43 @@ void Init_motto_mysql(void)
     rb_define_singleton_method(cMysql, "create_mysql_timestamp", create_mysql_timestamp, 8);
     rb_define_singleton_method(cMysql, "create_ruby_timestamp",  create_ruby_timestamp,  8);
 
+    /* Mysql::Result */
     rb_define_method(cMysqlRes, "fetch_as_hash",         result_fetch_as_hash,   0);
     rb_define_method(cMysqlRes, "fetch_as_array",        result_fetch_as_array,  0);
     rb_define_method(cMysqlRes, "fetch_as_object",       result_fetch_as_object, 1);
+    rb_define_method(cMysqlRes, "fetch_as",              result_fetch_as_object, 1);
     rb_define_method(cMysqlRes, "fetch_all_as_hashes",   result_fetch_all_as_hashes,  0);
     rb_define_method(cMysqlRes, "fetch_all_as_arrays",   result_fetch_all_as_arrays,  0);
     rb_define_method(cMysqlRes, "fetch_all_as_objects",  result_fetch_all_as_objects, 1);
+    rb_define_method(cMysqlRes, "fetch_all_as",          result_fetch_all_as_objects, 1);
 
     rb_define_method(cMysqlRes, "fetch_as_hash!",        result_fetch_as_hash2,   0);
     rb_define_method(cMysqlRes, "fetch_as_array!",       result_fetch_as_array2,  0);
     rb_define_method(cMysqlRes, "fetch_as_object!",      result_fetch_as_object2, 1);
+    rb_define_method(cMysqlRes, "fetch_as!",             result_fetch_as_object2, 1);
     rb_define_method(cMysqlRes, "fetch_all_as_hashes!",  result_fetch_all_as_hashes2,  0);
     rb_define_method(cMysqlRes, "fetch_all_as_arrays!",  result_fetch_all_as_arrays2,  0);
     rb_define_method(cMysqlRes, "fetch_all_as_objects!", result_fetch_all_as_objects2, 1);
+    rb_define_method(cMysqlRes, "fetch_all_as!",         result_fetch_all_as_objects2, 1);
 
 
+    /* Mysql::Stmt */
     rb_define_method(cMysqlStmt, "fetch_as_hash",         stmt_fetch_as_hash,    0);
     rb_define_method(cMysqlStmt, "fetch_as_array",        stmt_fetch_as_array,   0);
     rb_define_method(cMysqlStmt, "fetch_as_object",       stmt_fetch_as_object,  1);
+    rb_define_method(cMysqlStmt, "fetch_as",              stmt_fetch_as_object,  1);
     rb_define_method(cMysqlStmt, "fetch_all_as_hashes",   stmt_fetch_all_as_hashes,   0);
     rb_define_method(cMysqlStmt, "fetch_all_as_arrays",   stmt_fetch_all_as_arrays,   0);
     rb_define_method(cMysqlStmt, "fetch_all_as_objects",  stmt_fetch_all_as_objects,  1);
+    rb_define_method(cMysqlStmt, "fetch_all_as",          stmt_fetch_all_as_objects,  1);
 
     rb_define_method(cMysqlStmt, "fetch_as_hash!",        stmt_fetch_as_hash2,   0);
     rb_define_method(cMysqlStmt, "fetch_as_array!",       stmt_fetch_as_array2,  0);
     rb_define_method(cMysqlStmt, "fetch_as_object!",      stmt_fetch_as_object2, 1);
+    rb_define_method(cMysqlStmt, "fetch_as!",             stmt_fetch_as_object2, 1);
     rb_define_method(cMysqlStmt, "fetch_all_as_hashes!",  stmt_fetch_all_as_hashes2,  0);
     rb_define_method(cMysqlStmt, "fetch_all_as_arrays!",  stmt_fetch_all_as_arrays2,  0);
     rb_define_method(cMysqlStmt, "fetch_all_as_objects!", stmt_fetch_all_as_objects2, 1);
+    rb_define_method(cMysqlStmt, "fetch_all_as!",         stmt_fetch_all_as_objects2, 1);
 
 }
