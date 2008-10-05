@@ -1,11 +1,27 @@
 #!/usr/local/bin/ruby -s
 
+###
+### usage: ruby -s dbbench.rb -bench1 -N=10000
+###
+
 require 'mysql'
 #class Mysql::Result
 #  include Enumerable
 #end
 require 'motto_mysql'
 
+
+def convert_array(row)
+  [row[0].to_i, row[1], row[2], row[3], row[4].to_f, row[5].to_f, row[6].to_f ]
+end
+
+def convert_hash(h)
+  h['id']     = h['id'].to_i
+  h['price']  = h['price'].to_f,
+  h['change'] = h['change'].to_f,
+  h['ratio']  = h['ratio'].to_f
+  h
+end
 
 class Stock0
   attr_accessor :id, :name, :url, :symbol, :price, :change, :ratio
@@ -40,12 +56,16 @@ def bench1(ntimes, conn, sql)
            'list=[];',
            'list=[]; rs.each{|row| }',
            'list=[]; rs.each{|row| list << row}',
+           'list=[]; rs.each{|row| list<<convert_array(row)}',
            'list=[]; rs.each{|row| list<<Stock1.new(*row)}',
+           'list=[]; rs.each{|row| list<<Stock1.new(*convert_array(row))}',
            #'list=[]; record.each {|row| arr << Stock1.new(row) }',
            #'list=[]; for row in rs do arr << Stock1.new(*row) end',
            #'arr=rs.collect {|row| StockInfo.new(*row) }',
            'list=[]; rs.each_hash{|hash| list << hash}',
+           'list=[]; rs.each_hash{|h| list<<convert_hash(h)}',
            'list=[]; rs.each_hash{|h| list<<Stock2.new(h)}',
+           'list=[]; rs.each_hash{|h| list<<Stock2.new(convert_hash(h))}',
            'list = rs.fetch_all_as_hashes()',
            'list = rs.fetch_all_as_arrays()',
            'list = rs.fetch_all_as(Stock0)',
