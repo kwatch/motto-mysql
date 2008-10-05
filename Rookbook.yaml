@@ -1,26 +1,46 @@
 
-
 properties:
 
-  - target:		motto_mysql
+  - project    :	motto-mysql
+  - target     :	motto_mysql
+  - release    :	0.1.0
+  - copyright  :	copyright(c) 2006-2008 kuwata-lab all rights reserved.
+  - license    :	"License: Ruby's license"
   #- mysql_ruby_version: '2.7.4'
   #- mysql_ruby_version: '2.7.5'
   #- mysql_ruby_version: '2.7.6'
   #- mysql_ruby_version: '2.8pre4'
   - mysql_ruby_version: '2.8'
   - mysql_srcdir:	external/mysql-ruby-$(mysql_ruby_version)
-  - mysql_c:		$(mysql_srcdir)/mysql.c
+  - mysql_c    :	$(mysql_srcdir)/mysql.c
+
+parameters:
+
+  #- rook_product:	:all
 
 recipes:
 
   - product:	:all
-    ingreds:	[ Makefile, $(target).h ]
+    ingreds:	[:build, :install, :test, :clean, :package]
+
+  - product:	:build
+    desc:	create Makefile and compile
+    ingreds:	[ ext/Makefile, ext/$(target).h ]
     method*: |
-	sys "make"
+	chdir "ext" do sys "make" end
+
+  - product:	:install
+    ingreds:	[ :build ]
+    method*: |
+	chdir "ext" do sys "sudo make install" end
+
+  - product:	:test
+    method*: |
+	sys "testrb test"
 
   - product:	:clean
     method*: |
-	rm_rf 'Makefile', '$(target).h', '$(target).o', '$(target).bundle', 'debug', 'mkmf.log'
+	rm_rf 'ext/Makefile', 'ext/$(target).o', 'ext/$(target).bundle', 'ext/mkmf.log'
 
   - product:	ext/Makefile
     ingreds:	[ ext/extconf.rb ]
@@ -32,6 +52,7 @@ recipes:
 	end
 
   - product:	:header
+    desc:	create 'ext/*.h' file
     ingreds:	[ ext/$(target).h ]
 
   - product:	ext/$(target).h
@@ -90,6 +111,39 @@ recipes:
 	  content << "dt { font-weight: bold; color: #000000; margin-top: 5px; }\n"
 	  content << "dd { margin-top: 5px; margin-bottom: 10px; }\n"
 	end
+
+  - product:	:package
+    desc:	create *.tar.gz and *.gem under 'build' directory
+    ingreds:	[ :clean ]
+    method*: |
+	## remove and create build directory
+	base = "$(project)-$(release)"
+	dir = "build/#{base}"
+	rm_rf dir
+	mkdir_p dir
+	## copy files
+	store %w[README.rdoc $(project).gemspec setup.rb], dir
+	store 'ext/**/*', 'test/**/*', dir
+	## edit files
+        edit "#{dir}/**/*" do |content|
+          content.gsub!(/\$Release\$/,      "$(release)")
+          content.gsub!(/\$Release:.*?\$/,  "$Release: $(release) $")
+          content.gsub!(/\$Copyright.*?\$/, "$(copyright)")
+          content.gsub!(/\$License.*?\$/,   "$(license)")
+          content
+	end
+	## create packages
+	chdir "build" do
+	  tar_czf "#{base}.tar.gz", base
+	end
+	chdir dir do
+	  #sys "gem build $(project).gemspec"
+          Gem.manage_gems
+          require 'rubygems/gem_runner'
+          Gem::GemRunner.new.run ['build', '$(project).gemspec']
+	  mv "#{base}.gem", ".."
+	end
+
 
   - product:	:debug
     method*: |
