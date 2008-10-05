@@ -1,4 +1,4 @@
-= README.txt
+= Motto-Mysql README
 
 Release: $Release$
 
@@ -9,7 +9,7 @@ http://rubyforge.org/projects/motto-mysql/
 
 ==  About
 
-'Motto-mysql' is a complementary library to enhance 'mysql-ruby'.
+'Motto-Mysql' is a complementary library to enhance 'mysql-ruby'.
 It adds some methods into Mysql::Result and Mysql::Stmt classes.
 
 Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
@@ -33,23 +33,25 @@ Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
 
 1. Be sure that header files of Ruby and MySQL are installed.
 2. Install mysql-ruby (>= 2.7.4) if not installed yet.
-3. Install motto-mysql.
+3. Install Motto-Mysql by RubyGems or 'setup.rb'.
 
-The following is an example of steps to install.
+The following is an example of steps to install by 'setup.rb'.
 
     ### install mysql-ruby (if not installed yet)
-    $ tar xzf mysql-ruby-2.8pre4.tar.gz
-    $ cd mysql-ruby-2.8pre4
-    $ ruby extconf.rb --with-mysql-dir=/usr/local/mysql
+    $ tar xzf mysql-ruby-2.8.tar.gz
+    $ cd mysql-ruby-2.8/
+    $ which mysql_config
+    /usr/local/mysql/bin/mysql_config
+    $ ruby extconf.rb --with-mysql-config
     $ make
     $ sudo make install
     $ cd ..
     ### install motto-mysql
     $ tar xzf motto-mysql-$Release$.tar.gz
     $ cd motto-mysql-$Release$
-    $ ruby extconf.rb --with-mysql-dir=/usr/local/mysql
-    $ make
-    $ sudo make install
+    $ which mysql_config
+    /usr/local/mysql/bin/mysql_config
+    $ sudo ruby setup.rb
 
 
 == Example
