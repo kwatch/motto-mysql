@@ -1,10 +1,21 @@
 
+preparation*: |
+
+  def edit_content(content)
+    content.gsub!(/\$Release\$/,      @release)
+    content.gsub!(/\$Release:.*?\$/,  "$Release: #{@release} $")
+    content.gsub!(/\$Copyright.*?\$/, @copyright)
+    content.gsub!(/\$License.*?\$/,   @license)
+    content
+  end
+
+
 properties:
 
   - project    :	motto-mysql
   - target     :	motto_mysql
   - release    :	0.1.0
-  - copyright  :	copyright(c) 2006-2008 kuwata-lab all rights reserved.
+  - copyright  :	copyright(c) 2008 kuwata-lab.com all rights reserved.
   - license    :	"License: Ruby's license"
   #- mysql_ruby_version: '2.7.4'
   #- mysql_ruby_version: '2.7.5'
@@ -136,11 +147,7 @@ recipes:
 	store 'ext/**/*', 'test/**/*', dir
 	## edit files
         edit "#{dir}/**/*" do |content|
-          content.gsub!(/\$Release\$/,      "$(release)")
-          content.gsub!(/\$Release:.*?\$/,  "$Release: $(release) $")
-          content.gsub!(/\$Copyright.*?\$/, "$(copyright)")
-          content.gsub!(/\$License.*?\$/,   "$(license)")
-          content
+	  edit_content(content)
 	end
 	## create packages
 	chdir "build" do
@@ -153,6 +160,44 @@ recipes:
           Gem::GemRunner.new.run ['build', '$(project).gemspec']
 	  mv "#{base}.gem", ".."
 	end
+
+
+  - product:	:index
+    ingreds:	[ website/index.html ]
+
+  - product:	website/index.html
+    ingreds:	[ README.txt ]
+    method*: |
+	mkdir "website" unless test(?d, "website")
+        download_url = "http://rubyforge.org/projects/$(project)/"
+        sys "rd2 #{@ingred} | tidy -q -i -wrap 9999 -ashtml > #{@product}"
+        edit @product do |content|
+          body = (content =~ /<body>.*<\/body>/m) && $&
+          #body.gsub! /<h1>.*<\/h1>/, "<h1>$(project): README.txt</h1>"
+          #body.gsub! /README-$(project)/, 'README'
+          body.gsub! /<!-- RDLabel: ".*" -->/, ''
+          body.gsub! /(<h\d>)<a name=".*?" id=".*?">/, '\1'
+          body.gsub! /<\/a>(<\/h\d>)/, '\1'
+	  edit_content(body)
+	  body.gsub! /copyright\(c\)/, 'copyright&copy;'
+          body.sub! /http:\/\/$(project)\.rubyforge\.org\//, '<a href="\&">\&</a><br />'
+          body.sub! /http:\/\/rubyforge.org\/projects\/$(project)\//, '<a href="\&">\&</a>'
+          #body.sub! /$(project)-$(release)\.tar\.gz/, "<a href=\"#{download_url}\">\\&</a>"
+	  #body.sub! /CGI-Exception/, '<a href="http://cgi-exception.rubyforge.org/">\&</a>'
+          html = <<END
+        <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+        <html lang="en">
+        <head>
+          <title>$(project): README.txt</title>
+          <meta http-equiv="Content-Type" content="text/html; charset=utf8">
+          <link rel="stylesheet" type="text/css" href="style.css">
+        </head>
+        #{body}
+        </html>
+        END
+          content[0..-1] = html
+          content
+        end
 
 
   - product:	:debug

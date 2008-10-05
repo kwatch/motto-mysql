@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+<head>
+  <title>motto-mysql: README.txt</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf8">
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <h1>Motto-Mysql README</h1>
+
+  <p>Release: 0.1.0</p>
+
+  <p>copyright&copy; 2008 kuwata-lab.com all rights reserved.</p>
+
+  <p><a href="http://rubyforge.org/projects/motto-mysql/">http://rubyforge.org/projects/motto-mysql/</a></p>
+
+  <h2>About</h2>
+
+  <p>'Motto-Mysql' is a complementary library to enhance 'mysql-ruby'. It adds some methods into Mysql::Result and Mysql::Stmt classes.</p>
+
+  <p>Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).</p>
+
+  <h2>Features</h2>
+
+  <ul>
+    <li>Add 'fetch_as_{hash,array,object}()' and 'fetch_all_as_{hashes,arrays,objects}()' methods into Mysql::Result and Mysql::Stmt classes. These methods returns proper data instead of String. For example, you can get 123 instead of "123", true/false instead of "1"/"0".</li>
+
+    <li>Time object will be returned instead of Mysql::Time.</li>
+
+    <li>True or false will be returned instead of 1 or 0 if column type is tinyint.</li>
+
+    <li>3.14 will be returned, while Mysql::Stmt.fetch() returns 3.14000010490417.</li>
+  </ul>
+
+  <h2>Install</h2>
+
+  <ol>
+    <li>Be sure that header files of Ruby and MySQL are installed.</li>
+
+    <li>Install mysql-ruby (&gt;= 2.7.4) if not installed yet.</li>
+
+    <li>Install Motto-Mysql by RubyGems or 'setup.rb'.</li>
+  </ol>
+
+  <p>The following is an example of steps to install by 'setup.rb'.</p>
+  <pre>
+### install mysql-ruby (if not installed yet)
+$ tar xzf mysql-ruby-2.8.tar.gz
+$ cd mysql-ruby-2.8/
+$ which mysql_config
+/usr/local/mysql/bin/mysql_config
+$ ruby extconf.rb --with-mysql-config
+$ make
+$ sudo make install
+$ cd ..
+### install motto-mysql
+$ tar xzf motto-mysql-0.1.0.tar.gz
+$ cd motto-mysql-0.1.0
+$ which mysql_config
+/usr/local/mysql/bin/mysql_config
+$ sudo ruby setup.rb
+</pre>
+
+  <h2>Example</h2>
+  <pre>
+require 'mysql'
+require 'motto_mysql'
+
+conn = Mysql.connect('localhost', 'username', 'password', 'dbname')
+sql = 'select * from items';
+
+### Mysql::Result#fetch_as_hash() vs. Mysql::Result#fetch_as_hash()
+result = conn.query(sql)
+p result.fetch_as_hash() #=&gt; {"id"=&gt;"1", "name"=&gt;"foo", "price"=&gt;"3.14",
+                         #    "created_at"=&gt;#&lt;Mysql::Time&gt;, "flag"=&gt;"1" }
+result.free()
+result = conn.query(sql)
+p result.fetch_as_hash   #=&gt; {"id"=&gt;1, "name"=&gt;"foo", "price"=&gt;3.14,
+                         #    "created_at"=&gt;#&lt;Time&gt;, "flag"=&gt;true }
+result.free()            #=&gt; Mysql::Error ("Mysql::Result object is freed.")
+
+### Mysql::Result#fetch_row() vs. Mysql::Result#fetch_as_array()
+result = conn.query(sql)
+p result.fetch_row       #=&gt; {"1", "foo", "3.14", #&lt;Mysql::Time&gt;, "1" }
+result.free()
+result = conn.query(sql)
+p result.fetch_as_hash   #=&gt; {1, "foo", 3.14, #&lt;Time&gt;, true }
+result.free()            #=&gt; Mysql::Error ("Mysql::Result object is freed.")
+
+### Mysql::Result#fetch_as()
+class MyObject
+end
+result = conn.query(sql)
+result.fetch_as(MyClass) #=&gt; #&lt;MyClass @id=1, @name="foo", @price=&gt;3.14,
+                                       @created_at=&gt;#&lt;Time&gt;, @flag=&gt;true&gt;
+result.free()            #=&gt; Mysql::Error ("Mysql::Result object is freed.")
+
+### Mysql::Result#fetch_all_as_hashes()
+result = conn.query(sql)
+p result.fetch_all_as_hashes   #=&gt; [ {"id"=&gt;1, "name"=&gt;"foo", ... },
+                               #     {"id"=&gt;2, "name"=&gt;"bar", ... }, ]
+# or result.fetch_all_as_hashes {|hash| p hash }
+
+### Mysql::Result#fetch_all_as_arrays()
+result = conn.query(sql)
+p result.fetch_all_as_arrays   #=&gt; [ [1, "foo", 3.14, ...],
+                               #     [2, "bar", 3.15, ...], ]
+# or result.fetch_all_as_arrays {|array| p array }
+
+### Mysql::Result#fetch_all_as()
+result = conn.query(sql)
+p result.fetch_all_as(MyClass) #=&gt; [ #&lt;MyObject @id=1, @name="foo", ...&gt;,
+                               #     #&lt;MyObject @id=2, @name="bar", ...&gt;, ]
+# or result.fetch_all_as(MyClass) {|object| p object }
+</pre>
+
+  <h2>API</h2>
+
+  <h3>class Mysql::Result</h3>
+
+  <dl>
+    <dt><a name="label-7" id="label-7">Mysql::Result#fetch_as_hash()</a></dt>
+
+    <dd>Similar to Mysql::Result#fetch_as_hash(), but values are converted into proper class and Mysql::Result#free() is called automatically. For example, Mysql::Result#fetch_as_hash() returns <code>{'id'=&gt;1, 'float'=&gt;3.14, 'date'=&gt;Time.mktime(2008, 1, 1), 'flag'=&gt;true}</code> while Mysql::Result#fetch_as_hash() returns <code>{'id'=&gt;"1", 'float'=&gt;"3.14", 'date'=&gt;"2008-01-01", 'flag'=&gt;"1"}</code> .</dd>
+
+    <dt><a name="label-8" id="label-8">Mysql::Result#fetch_as_hash!()</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_as_hash() but this doesn't call Mysql::Result#free() automatically.</dd>
+
+    <dt><a name="label-9" id="label-9">Mysql::Result#fetch_as_array()</a></dt>
+
+    <dd>Similar to Mysql::Result#fetch_row(), but values are converted into proper class and Mysql::Result#free() is called automatically. For example, Mysql::Result#fetch_as_array() returns <code>{1, 3.14, Time.mktime(2008, 1, 1), true}</code> while Mysql::Result#fetch_row() returns <code>{"1", "3.14", "2008-01-01", "1"}</code> .</dd>
+
+    <dt><a name="label-10" id="label-10">Mysql::Result#fetch_as_array!()</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_as_array() but this doesn't call Mysql::Result#free() automatically.</dd>
+
+    <dt><a name="label-11" id="label-11">Mysql::Result#fetch_as_object(class), Mysql::Result#fetch_as(class)</a></dt>
+
+    <dd>Similar to Mysql::Result#fetch_as_hash(), but instance object of ClassObject is returned instead of hash object. Column data are set as instance variables of the object.</dd>
+
+    <dt><a name="label-12" id="label-12">Mysql::Result#fetch_as_object!(class), Mysql::Result#fetch_as!(class)</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_as_object() but this doesn't call Mysql::Result#free() automatically.</dd>
+
+    <dt><a name="label-13" id="label-13">Mysql::Result#fetch_all_as_hashes()</a></dt>
+
+    <dd>Fetch all records by Result#fetch_as_hash(). If block is given, it is called with each fetched hash object. If block is not given, just returns an array of fetched hash objects. Mysql::Result#free() is called automatically.</dd>
+
+    <dt><a name="label-14" id="label-14">Mysql::Result#fetch_all_as_hashes!()</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_all_as_hashes() but this doesn't call Mysql::Result#free() automatically.</dd>
+
+    <dt><a name="label-15" id="label-15">Mysql::Result#fetch_all_as_arrays()</a></dt>
+
+    <dd>Fetch all records by Result#fetch_as_array(). If block is given, it is called with each fetched array object. If block is not given, just returns an array of fetched array objects. Mysql::Result#free() is called automatically.</dd>
+
+    <dt><a name="label-16" id="label-16">Mysql::Result#fetch_all_as_arrays!()</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_all_as_arrays() but this doesn't call Mysql::Result#free() automatically.</dd>
+
+    <dt><a name="label-17" id="label-17">Mysql::Result#fetch_all_as_objects(class), Mysql::Result#fetch_all_as(class)</a></dt>
+
+    <dd>Fetch all records by Result#fetch_as_object(). If block is given, it is called with each fetched object. If block is not given, just returns an array of fetched objects. Mysql::Result#free() is called automatically.</dd>
+
+    <dt><a name="label-18" id="label-18">Mysql::Result#fetch_all_as_objects!(class), Mysql::Result#fetch_all_as!(class)</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_all_as_objects() but this doesn't call Mysql::Result#free() automatically.</dd>
+  </dl>
+
+  <h3>class Mysql::Stmt</h3>
+
+  <dl>
+    <dt><a name="label-20" id="label-20">Mysql::Stmt#fetch_as_hash()</a></dt>
+
+    <dd>Equivarent to Mysql::Resutl#fetch_as_hash(). Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.</dd>
+
+    <dt><a name="label-21" id="label-21">Mysql::Stmt#fetch_as_hash!()</a></dt>
+
+    <dd>Same as Mysql::Stmt#fetch_as_hash() but this doesn't call Mysql::Stmt#free_result() and Mysql::Stmt#close().</dd>
+
+    <dt><a name="label-22" id="label-22">Mysql::Stmt#fetch_as_array()</a></dt>
+
+    <dd>Equivarent to Mysql::Resutl#fetch_as_array(). Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.</dd>
+
+    <dt><a name="label-23" id="label-23">Mysql::Stmt#fetch_as_array!()</a></dt>
+
+    <dd>Same as Mysql::Stmt#fetch_as_array() but this doesn't call Mysql::Stmt#free_result() and Mysql::Stmt#close().</dd>
+
+    <dt><a name="label-24" id="label-24">Mysql::Stmt#fetch_as_object(class), Mysql::Stmt#fetch_as(class)</a></dt>
+
+    <dd>Equivarent to Mysql::Result#fetch_as_object(). Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.</dd>
+
+    <dt><a name="label-25" id="label-25">Mysql::Stmt#fetch_as_object!(class), Mysql::Stmt#fetch_as!(class)</a></dt>
+
+    <dd>Same as Mysql::Stmt#fetch_as_object() but this doesn't call Mysql::Stmt#free_result() and Mysql::Stmt#close().</dd>
+
+    <dt><a name="label-26" id="label-26">Mysql::Stmt#fetch_all_as_hashes()</a></dt>
+
+    <dd>Equivarent to Mysql::Result#fetch_all_as_hashes(). Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.</dd>
+
+    <dt><a name="label-27" id="label-27">Mysql::Stmt#fetch_all_as_hashes!()</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_all_as_hashes() but this doesn't call Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.</dd>
+
+    <dt><a name="label-28" id="label-28">Mysql::Stmt#fetch_all_as_arrays()</a></dt>
+
+    <dd>Equivarent to Mysql::Result#fetch_all_as_arrays(). Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.</dd>
+
+    <dt><a name="label-29" id="label-29">Mysql::Stmt#fetch_all_as_arrays!()</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_all_as_arrays() but this doesn't call Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.</dd>
+
+    <dt><a name="label-30" id="label-30">Mysql::Stmt#fetch_all_as_objects(class), Mysql::Stmt#fetch_all_as(class)</a></dt>
+
+    <dd>Equivarent to Mysql::Result#fetch_all_as_objects(). Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.</dd>
+
+    <dt><a name="label-31" id="label-31">Mysql::Stmt#fetch_all_as_objects!(class), Mysql::Stmt#fetch_all_as!(class)</a></dt>
+
+    <dd>Same as Mysql::Result#fetch_all_as_objects() but this doesn't call Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.</dd>
+  </dl>
+
+  <h2>Tips</h2>
+
+  <h3>Timestamp class</h3>
+
+  <p>If column type is timestamp, fetch_as_xxx() and fetch_all_as_xxx() methods in Mysql::Result and Mysql::Stmt classes returns:</p>
+
+  <ul>
+    <li>Time object when 1970 &lt;= year &lt; 2038</li>
+
+    <li>DateTime object when year &lt; 1970 or 2038 &lt;= year</li>
+  </ul>
+
+  <p>Because Ruby's Time class causes ArgumentError when year &lt; 1970 or 2038 &lt;= year.</p>
+
+  <p>(Notice that this is for 32bit environment. If you are in 64 bit environment, Ruby's Time object will be returned everytime.)</p>
+
+  <h2>License</h2>
+
+  <p>Ruby's license</p>
+
+  <h2>Author</h2>
+
+  <p>makoto kuwata &lt;kwa(at)kuwata-lab.com&gt;</p>
+
+  <h2>Bug reports</h2>
+
+  <p>If you have bugs or questions, join http://kuwata-lab-products.googlegroups.com.</p>
+</body>
+</html>

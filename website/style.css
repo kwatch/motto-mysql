@@ -1,0 +1,31 @@
+body {
+    background: #FFFFFF;
+    margin: 30px;
+}
+
+h2 {
+    border: solid #9999FF;
+    border-width: 0px 0px 2px 10px;
+    padding: 5px 0px 2px 10px;
+    margin-top: 40px;
+}
+
+pre {
+    /*background: #DDDDDD;*/
+    border: solid 2px #999999;
+    padding: 5px;
+    margin-left: 10px;
+}
+
+dt {
+    Xborder: dotted;
+    Xborder-width: 0 0 1px 0;
+    color: #003366;
+    font-weight: bold;
+}
+
+dd {
+    margin-top: 8	px;
+    margin-bottom: 15px;
+    margin-left: 30px;
+}
