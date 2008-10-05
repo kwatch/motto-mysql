@@ -29,9 +29,11 @@ else
   $stderr.puts "Trying to detect MySQL configuration with mysql_config..."
   if (cflags = `mysql_config --cflags`.strip) && $? == 0 &&
      (libs   = `mysql_config --libs`.strip)   && $? == 0
+    $stderr.puts "Succeeded to detect MySQL configuration with mysql_config."
     $CPPFLAGS += ' ' + cflags.strip
     $libs = libs.strip + " " + $libs
   else
+    $stderr.puts "Failed to detect MySQL configuration with mysql_config."
     $stderr.puts "Trying to detect MySQL client library..."
     inc, lib = dir_config('mysql', '/usr/local')
     libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
@@ -45,6 +47,11 @@ end
 have_func('mysql_ssl_set')
 have_func('rb_str_set_len')
 
+
+## define HAVE_MYSQL_H if mysql.h is found
+have_header('mysql.h') or have_header('mysql/mysql.h') or die "can't find 'mysql.h'."
+
+
 #if have_header('mysql.h') then
 #  src = "#include <errmsg.h>\n#include <mysqld_error.h>\n"
 #elsif have_header('mysql/mysql.h') then
@@ -52,7 +59,7 @@ have_func('rb_str_set_len')
 #else
 #  die "can't find 'mysql.h'."
 #end
-#
+
 ## make mysql constant
 #File.open("conftest.c", "w") do |f|
 #  f.puts src
