@@ -14,7 +14,7 @@ Motto-mysql is a complementary library to enhance 'mysql-ruby' library.
 It adds some methods into Mysql::Result and Mysql::Stmt classes.
 Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
 END
-  s.files = ["README.rdoc", "setup.rb"] + Dir.glob("ext/**/*")
+  s.files = ["README.txt", "setup.rb"] + Dir.glob("ext/**/*")
   #s.executable = "bin/xxx"
   #s.bindir     = "bin"
   #s.test_file  = "test/test_motto_mysql.rb"
@@ -22,9 +22,9 @@ END
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.date = "2008-10-05"
   s.extensions = ["ext/extconf.rb"]
-  s.extra_rdoc_files = ["README.rdoc"]
+  #s.extra_rdoc_files = ["README.rdoc"]
   #s.has_rdoc = true
-  s.rdoc_options = ["--quiet", "--title", "Motto-mysql Reference", "--main", "README.rdoc", "--inline-source"]
+  #s.rdoc_options = ["--quiet", "--title", "Motto-mysql Reference", "--main", "README.rdoc", "--inline-source"]
   #s.require_paths = ["lib"]
   #s.rubygems_version = "1.2.0"
 end

@@ -34,6 +34,12 @@ recipes:
     method*: |
 	chdir "ext" do sys "sudo make install" end
 
+  - product:	:uninstall
+    method*: |
+	files = Dir.glob('/usr/local/lib/ruby/site_ruby/1.8/*/motto_mysql.*')
+	#sys "sudo rm #{files.join(' ')}"
+	rm_f files
+
   - product:	:test
     method*: |
 	sys "testrb test"
@@ -90,27 +96,31 @@ recipes:
 
 
   - product:	README.html
-    ingreds:	[ README.rdoc ]
+    ingreds:	[ README.txt ]
     method*: |
-	#sys "rd2 #{@ingred} > #{@product}"
-	#sys "rdoc -1 #{@ingred} > #{@product}"
-	#sys "rdoc #{@ingred}"
-	sys "rdoc --template hefss  #{@ingred}"
-	#sys "rdoc --template kilmer #{@ingred}"
-	mv "doc/files/README_rdoc.html", @product
-	mv "doc/rdoc-style.css", "rdoc-style.css"
-	rm_rf "doc"
-	edit @product do |content|
-	  content.sub! '<body bgcolor="#BBBBBB">', '<body>'
-	  content.sub! 'href=".././rdoc-style.css"', 'href="rdoc-style.css"'
-	  content
-	end
-	edit "rdoc-style.css" do |content|
-	  content.sub! 'background: #BBBBBB;', '/*background: #BBBBBB;*/'
-	  content << "\n"
-	  content << "dt { font-weight: bold; color: #000000; margin-top: 5px; }\n"
-	  content << "dd { margin-top: 5px; margin-bottom: 10px; }\n"
-	end
+	sys "rd2 #{@ingred} > #{@product}"
+
+#  - product:	README.html
+#    ingreds:	[ README.rdoc ]
+#    method*: |
+#	#sys "rdoc -1 #{@ingred} > #{@product}"
+#	#sys "rdoc #{@ingred}"
+#	sys "rdoc --template hefss  #{@ingred}"
+#	#sys "rdoc --template kilmer #{@ingred}"
+#	mv "doc/files/README_rdoc.html", @product
+#	mv "doc/rdoc-style.css", "rdoc-style.css"
+#	rm_rf "doc"
+#	edit @product do |content|
+#	  content.sub! '<body bgcolor="#BBBBBB">', '<body>'
+#	  content.sub! 'href=".././rdoc-style.css"', 'href="rdoc-style.css"'
+#	  content
+#	end
+#	edit "rdoc-style.css" do |content|
+#	  content.sub! 'background: #BBBBBB;', '/*background: #BBBBBB;*/'
+#	  content << "\n"
+#	  content << "dt { font-weight: bold; color: #000000; margin-top: 5px; }\n"
+#	  content << "dd { margin-top: 5px; margin-bottom: 10px; }\n"
+#	end
 
   - product:	:package
     desc:	create *.tar.gz and *.gem under 'build' directory
@@ -122,7 +132,7 @@ recipes:
 	rm_rf dir
 	mkdir_p dir
 	## copy files
-	store %w[README.rdoc $(project).gemspec setup.rb], dir
+	store %w[README.txt $(project).gemspec setup.rb], dir
 	store 'ext/**/*', 'test/**/*', dir
 	## edit files
         edit "#{dir}/**/*" do |content|
