@@ -61,10 +61,9 @@ $N.to_i.times do
 
   #list = stmt.collect {|row| list << row}             #
 
-  list = stmt.fetch_all_rows                                # 10.1 /
+  list = stmt.fetch_all_as_arrays                           # 10.1 /
 
-  #list = stmt.fetch_all_hash()                             # 11.6 / 
-  #list = stmt.fetch_all_hashes2()                         
+  #list = stmt.fetch_all_hashes()                           # 11.6 / 
   #list.each {|item| p item}
 
   #list = []                                                # 12.3 / 

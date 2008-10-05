@@ -41,19 +41,19 @@ def bench1(ntimes, conn, sql)
            'list=[]; rs.each{|row| }',
            'list=[]; rs.each{|row| list << row}',
            'list=[]; rs.each{|row| list<<Stock1.new(*row)}',
-           #'list=[]; record.each {|row| list << Stock1.new(row) }',
-           #'list=[]; for row in rs do list << Stock1.new(*row) end',
-           #'list=rs.collect {|row| StockInfo.new(*row) }',
+           #'list=[]; record.each {|row| arr << Stock1.new(row) }',
+           #'list=[]; for row in rs do arr << Stock1.new(*row) end',
+           #'arr=rs.collect {|row| StockInfo.new(*row) }',
            'list=[]; rs.each_hash{|hash| list << hash}',
            'list=[]; rs.each_hash{|h| list<<Stock2.new(h)}',
-           'list = rs.fetch_all_hash()',
-           'list = rs.fetch_all_array()',
-           'list = rs.fetch_all_object(Stock0)',
-           'list=[]; rs.fetch_all_hash{|hash| list << hash}',
-           'list=[]; rs.fetch_all_array{|arr| list << arr}',
-           'list=[]; rs.fetch_all_object(Stock0){|o|list<<o}',
-           'list=[]; rs.fetch_all_hash{|h|list<<Stock2.new(h)}',
-           'list=[]; rs.fetch_all_array{|a|list<<Stock1.new(*a)}',
+           'list = rs.fetch_all_as_hashes()',
+           'list = rs.fetch_all_as_arrays()',
+           'list = rs.fetch_all_as(Stock0)',
+           'list=[]; rs.fetch_all_as_hashes{|h|  list << h}',
+           'list=[]; rs.fetch_all_as_arrays{|a|  list << a}',
+           'list=[]; rs.fetch_all_as(Stock0){|o| list << o}',
+           'list=[]; rs.fetch_all_as_hashes{|h| list<<Stock2.new(h) }',
+           'list=[]; rs.fetch_all_as_arrays{|a| list<<Stock1.new(*a)}',
   ]
   init_benchmark()
   puts "*** ntimes=#{ntimes}"
@@ -63,8 +63,7 @@ def bench1(ntimes, conn, sql)
       eval <<-END
         job.report('#{code}') do
           ntimes.times do
-            result = conn.query(sql)
-            rs = result
+            rs = conn.query(sql)  # Mysql::Result
             #{code}
           end
         end
@@ -82,14 +81,14 @@ def bench2(ntimes, conn, sql)
            'lst=[]; st.each{|row| lst<<row}',
            'lst=[]; st.fetch{|row| lst<<row}',
            'lst=[]; st.each{|row| lst<<Stock1.new(row)}',
-           'lst = st.fetch_all_hash',
-           'lst = st.fetch_all_array',
-           'lst = st.fetch_all_object(Stock0)',
-           'lst=[]; st.fetch_all_hash{|hash| lst<<hash}',
-           'lst=[]; st.fetch_all_array{|arr| lst<<arr}',
-           'lst=[]; st.fetch_all_object(Stock0){|o|lst<<o}',
-           'lst=[]; st.fetch_all_hash{|h|lst<<Stock1.new(h)}',
-           'lst=[]; st.fetch_all_array{|a|lst<<Stock1.new(*a)}',
+           'lst = st.fetch_all_as_hashes',
+           'lst = st.fetch_all_as_arrays',
+           'lst = st.fetch_all_as(Stock0)',
+           'lst=[]; st.fetch_all_as_hashes{|h| lst<<h}',
+           'lst=[]; st.fetch_all_as_arrays{|a| lst<<a}',
+           'lst=[]; st.fetch_all_as(Stock0){|o|lst<<o}',
+           'lst=[]; st.fetch_all_as_hashes{|h| lst<<Stock1.new(h)}',
+           'lst=[]; st.fetch_all_as_arrays{|a| lst<<Stock1.new(*a)}',
   ]
   init_benchmark
   puts "*** ntimes=#{ntimes}"
@@ -195,9 +194,9 @@ def bench3(ntimes, conn, sql)
     #  stocks << StockInfo.new(hash)
     #end
 
-    #list = result.fetch_all_hash()             # 10.6
-    #list = result.fetch_all_array()            # 9.2
-    list = result.fetch_all_object(Stock0)            # 10.5
+    #list = result.fetch_all_as_hashes()       # 10.6
+    #list = result.fetch_all_as_arrays()       # 9.2
+    list = result.fetch_all_as(Stock0)         # 10.5
     #list.each do |e| p e end
   end
 end
