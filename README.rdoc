@@ -31,9 +31,9 @@ Motto-mysql requires mysql-ruby 2.7.4 or later (recommended 2.7.5 or later).
 
 ==  Install
 
-(1) Be sure that header files of Ruby and MySQL are installed.
-(2) Install mysql-ruby (>= 2.7.4) if not installed yet.
-(3) Install motto-mysql.
+1. Be sure that header files of Ruby and MySQL are installed.
+2. Install mysql-ruby (>= 2.7.4) if not installed yet.
+3. Install motto-mysql.
 
 The following is an example of steps to install.
 
@@ -109,122 +109,122 @@ The following is an example of steps to install.
 
 === class Mysql::Result
 
-: Mysql::Result#fetch_as_hash()
+[ Mysql::Result#fetch_as_hash() ]
 	Similar to Mysql::Result#fetch_as_hash(), but values are converted
 	into proper class and Mysql::Result#free() is called automatically.
 	For example, Mysql::Result#fetch_as_hash() returns
-	{'id'=>1, 'float'=>3.14, 'date'=>Time.mktime(2008, 1, 1), 'flag'=>true}
+	<tt>{'id'=>1, 'float'=>3.14, 'date'=>Time.mktime(2008, 1, 1), 'flag'=>true}</tt>
 	while Mysql::Result#fetch_as_hash() returns
-	{'id'=>"1", 'float'=>"3.14", 'date'=>"2008-01-01", 'flag'=>"1"}
+	<tt>{'id'=>"1", 'float'=>"3.14", 'date'=>"2008-01-01", 'flag'=>"1"}</tt>
 	.
 
-: Mysql::Result#fetch_as_hash!()
+[ Mysql::Result#fetch_as_hash!() ]
 	Same as Mysql::Result#fetch_as_hash() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_as_array()
+[ Mysql::Result#fetch_as_array() ]
 	Similar to Mysql::Result#fetch_row(), but values are converted
 	into proper class and Mysql::Result#free() is called automatically.
 	For example, Mysql::Result#fetch_as_array() returns
-	{1, 3.14, Time.mktime(2008, 1, 1), true}
+	<tt>{1, 3.14, Time.mktime(2008, 1, 1), true}</tt>
 	while Mysql::Result#fetch_row() returns
-	{"1", "3.14", "2008-01-01", "1"}
+	<tt>{"1", "3.14", "2008-01-01", "1"}</tt>
 	.
 
-: Mysql::Result#fetch_as_array!()
+[ Mysql::Result#fetch_as_array!() ]
 	Same as Mysql::Result#fetch_as_array() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_as_object(class), Mysql::Result#fetch_as(class)
+[ Mysql::Result#fetch_as_object(class), Mysql::Result#fetch_as(class) ]
 	Similar to Mysql::Result#fetch_as_hash(), but instance object
 	of ClassObject is returned instead of hash object.
 	Column data are set as instance variables of the object.
 
-: Mysql::Result#fetch_as_object!(class), Mysql::Result#fetch_as!(class)
+[ Mysql::Result#fetch_as_object!(class), Mysql::Result#fetch_as!(class) ]
 	Same as Mysql::Result#fetch_as_object() but this doesn't call
 	Mysql::Result#free() automatically.
 
 
-: Mysql::Result#fetch_all_as_hashes()
+[ Mysql::Result#fetch_all_as_hashes() ]
 	Fetch all records by Result#fetch_as_hash().
 	If block is given, it is called with each fetched hash object.
 	If block is not given, just returns an array of fetched hash objects.
 	Mysql::Result#free() is called automatically.
 
-: Mysql::Result#fetch_all_as_hashes!()
+[ Mysql::Result#fetch_all_as_hashes!() ]
 	Same as Mysql::Result#fetch_all_as_hashes() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_all_as_arrays()
+[ Mysql::Result#fetch_all_as_arrays() ]
 	Fetch all records by Result#fetch_as_array().
 	If block is given, it is called with each fetched array object.
 	If block is not given, just returns an array of fetched array objects.
 	Mysql::Result#free() is called automatically.
 
-: Mysql::Result#fetch_all_as_arrays!()
+[ Mysql::Result#fetch_all_as_arrays!() ]
 	Same as Mysql::Result#fetch_all_as_arrays() but this doesn't call
 	Mysql::Result#free() automatically.
 
-: Mysql::Result#fetch_all_as_objects(class), Mysql::Result#fetch_all_as(class)
+[ Mysql::Result#fetch_all_as_objects(class), Mysql::Result#fetch_all_as(class) ]
 	Fetch all records by Result#fetch_as_object().
 	If block is given, it is called with each fetched object.
 	If block is not given, just returns an array of fetched objects.
 	Mysql::Result#free() is called automatically.
 
-: Mysql::Result#fetch_all_as_objects!(class), Mysql::Result#fetch_all_as!(class)
+[ Mysql::Result#fetch_all_as_objects!(class), Mysql::Result#fetch_all_as!(class) ]
 	Same as Mysql::Result#fetch_all_as_objects() but this doesn't call
 	Mysql::Result#free() automatically.
 
 
 === class Mysql::Stmt
 
-: Mysql::Stmt#fetch_as_hash()
+[ Mysql::Stmt#fetch_as_hash() ]
 	Equivarent to Mysql::Resutl#fetch_as_hash().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Stmt#fetch_as_hash!()
+[ Mysql::Stmt#fetch_as_hash!() ]
 	Same as Mysql::Stmt#fetch_as_hash() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close().
 
-: Mysql::Stmt#fetch_as_array()
+[ Mysql::Stmt#fetch_as_array() ]
 	Equivarent to Mysql::Resutl#fetch_as_array().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Stmt#fetch_as_array!()
+[ Mysql::Stmt#fetch_as_array!() ]
 	Same as Mysql::Stmt#fetch_as_array() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close().
 
-: Mysql::Stmt#fetch_as_object(class), Mysql::Stmt#fetch_as(class)
+[ Mysql::Stmt#fetch_as_object(class), Mysql::Stmt#fetch_as(class) ]
 	Equivarent to Mysql::Result#fetch_as_object().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Stmt#fetch_as_object!(class), Mysql::Stmt#fetch_as!(class)
+[ Mysql::Stmt#fetch_as_object!(class), Mysql::Stmt#fetch_as!(class) ]
 	Same as Mysql::Stmt#fetch_as_object() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close().
 
 
-: Mysql::Stmt#fetch_all_as_hashes()
+[ Mysql::Stmt#fetch_all_as_hashes() ]
 	Equivarent to Mysql::Result#fetch_all_as_hashes().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Stmt#fetch_all_as_hashes!()
+[ Mysql::Stmt#fetch_all_as_hashes!() ]
 	Same as Mysql::Result#fetch_all_as_hashes() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
 
-: Mysql::Stmt#fetch_all_as_arrays()
+[ Mysql::Stmt#fetch_all_as_arrays() ]
 	Equivarent to Mysql::Result#fetch_all_as_arrays().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Stmt#fetch_all_as_arrays!()
+[ Mysql::Stmt#fetch_all_as_arrays!() ]
 	Same as Mysql::Result#fetch_all_as_arrays() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
-: Mysql::Stmt#fetch_all_as_objects(class), Mysql::Stmt#fetch_all_as(class)
+[ Mysql::Stmt#fetch_all_as_objects(class), Mysql::Stmt#fetch_all_as(class) ]
 	Equivarent to Mysql::Result#fetch_all_as_objects().
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() are called automatically.
 
-: Mysql::Stmt#fetch_all_as_objects!(class), Mysql::Stmt#fetch_all_as!(class)
+[ Mysql::Stmt#fetch_all_as_objects!(class), Mysql::Stmt#fetch_all_as!(class) ]
 	Same as Mysql::Result#fetch_all_as_objects() but this doesn't call
 	Mysql::Stmt#free_result() and Mysql::Stmt#close() automatically.
 
