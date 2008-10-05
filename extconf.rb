@@ -18,35 +18,41 @@ require 'mkmf'
 
 if /mswin32/ =~ RUBY_PLATFORM
   inc, lib = dir_config('mysql')
-  die "can't find libmysql." unless have_library("libmysql")
+  have_library("libmysql") or die "can't find libmysql."
 elsif mc = with_config('mysql-config') then
   mc = 'mysql_config' if mc == true
-  cflags = `#{mc} --cflags`.chomp
-  die "can't detect cflags." if $? != 0
-  libs = `#{mc} --libs`.chomp
-  die "can't detect libs." if $? != 0
+  cflags = `#{mc} --cflags`.chomp  ; $? == 0 or die "can't detect cflags."
+  libs   = `#{mc} --libs`.chomp    ; $? == 0 or die "can't detect libs."
   $CPPFLAGS += ' ' + cflags
   $libs = libs + " " + $libs
 else
-  inc, lib = dir_config('mysql', '/usr/local')
-  libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
-  while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
-    die "can't find mysql client library." if libs.empty?
-    have_library(libs.shift)
+  $stderr.puts "Trying to detect MySQL configuration with mysql_config..."
+  if (cflags = `mysql_config --cflags`.strip) && $? == 0 &&
+     (libs   = `mysql_config --libs`.strip)   && $? == 0
+    $CPPFLAGS += ' ' + cflags.strip
+    $libs = libs.strip + " " + $libs
+  else
+    $stderr.puts "Trying to detect MySQL client library..."
+    inc, lib = dir_config('mysql', '/usr/local')
+    libs = ['m', 'z', 'socket', 'nsl', 'mygcc']
+    while not find_library('mysqlclient', 'mysql_query', lib, "#{lib}/mysql") do
+      die "can't find mysql client library." if libs.empty?
+      have_library(libs.shift)
+    end
   end
 end
 
 have_func('mysql_ssl_set')
 have_func('rb_str_set_len')
 
-if have_header('mysql.h') then
-  src = "#include <errmsg.h>\n#include <mysqld_error.h>\n"
-elsif have_header('mysql/mysql.h') then
-  src = "#include <mysql/errmsg.h>\n#include <mysql/mysqld_error.h>\n"
-else
-  die "can't find 'mysql.h'."
-end
-
+#if have_header('mysql.h') then
+#  src = "#include <errmsg.h>\n#include <mysqld_error.h>\n"
+#elsif have_header('mysql/mysql.h') then
+#  src = "#include <mysql/errmsg.h>\n#include <mysql/mysqld_error.h>\n"
+#else
+#  die "can't find 'mysql.h'."
+#end
+#
 ## make mysql constant
 #File.open("conftest.c", "w") do |f|
 #  f.puts src
