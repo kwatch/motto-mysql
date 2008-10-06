@@ -180,8 +180,13 @@ recipes:
           body.gsub! /<\/a>(<\/h\d>)/, '\1'
 	  edit_content(body)
 	  body.gsub! /copyright\(c\)/, 'copyright&copy;'
-          body.sub! /http:\/\/$(project)\.rubyforge\.org\//, '<a href="\&">\&</a><br />'
-          body.sub! /http:\/\/rubyforge.org\/projects\/$(project)\//, '<a href="\&">\&</a>'
+	  #body.sub! /http:\/\/$(project)\.rubyforge\.org\//, '<a href="\&">\&</a><br />'
+	  #body.sub! /http:\/\/rubyforge\.org\/projects\/$(project)\//, '<a href="\&">\&</a>'
+	  #body.sub! /http:\/\/github\.com\/\w+\/$(project)\//, '<a href="\&">\&</a>'
+	  #body.sub! /http:\/\/kuwata-lab-products\.googlegroups.com\/?/, '<a href="\&">\&</a>'
+          body.gsub! /(http:\/\/[-\w:\/.]+[^.<])/, '<a href="\1">\1</a>'
+
+
           #body.sub! /$(project)-$(release)\.tar\.gz/, "<a href=\"#{download_url}\">\\&</a>"
 	  #body.sub! /CGI-Exception/, '<a href="http://cgi-exception.rubyforge.org/">\&</a>'
           html = <<END

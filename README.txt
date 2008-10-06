@@ -4,7 +4,10 @@ Release: $Release$
 
 $Copyright$
 
-http://rubyforge.org/projects/motto-mysql/
+* website: http://motto-mysql.rubyforge.org/
+* download: http://rubyforge.org/projects/motto-mysql/
+* repository: http://github.com/kwatch/motto-mysql/
+* bug reports: http://kuwata-lab-products.googlegroups.com/
 
 
 ==  About
